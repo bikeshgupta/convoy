@@ -4,6 +4,7 @@ import toast from 'react-hot-toast'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useShallow } from 'zustand/shallow'
 import useTripStore from '../store/tripStore'
+import { useAuth } from '../contexts/AuthContext'
 import useGeolocation from '../hooks/useGeolocation'
 import useTrip from '../hooks/useTrip'
 import useMembers from '../hooks/useMembers'
@@ -18,12 +19,13 @@ import MemberListPanel from '../components/panels/MemberListPanel'
 import ChatPanel from '../components/panels/ChatPanel'
 import TripSummary from '../components/panels/TripSummary'
 import LoadingScreen from '../components/ui/LoadingScreen'
-import { db, ref, onValue, off, push, serverTimestamp } from '../firebase'
+import { db, ref, onValue, off, push, set, serverTimestamp } from '../firebase'
 import { getTransportEmoji } from '../utils/transport'
 
 export default function TripPage() {
   const { tripCode: codeParam } = useParams()
   const navigate = useNavigate()
+  const { user } = useAuth()
 
   const {
     myName, memberId, myTransport, myColor, isObserver,
@@ -126,8 +128,22 @@ export default function TripPage() {
     else if (isConnected) toast.success('🔄 Reconnected', { duration: 2000 })
   }, [isConnected])
 
-  const handleLeave = () => {
+  const handleLeave = async () => {
     if (!window.confirm('Leave trip?')) return
+
+    // Persist trip to auth user's history so it's accessible across devices
+    if (user && db) {
+      const { tripStartTime } = useTripStore.getState()
+      set(ref(db, `users/${user.uid}/trips/${codeParam}`), {
+        tripCode:      codeParam,
+        joinedAt:      tripStartTime ?? Date.now(),
+        exitedAt:      Date.now(),
+        memberCount:   members.length + 1,
+        waypointCount: waypoints.length,
+        messageCount:  messages.length,
+      }).catch(() => {})
+    }
+
     setShowSummary(true)
   }
 
