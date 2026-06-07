@@ -12,6 +12,15 @@ import {
   onDisconnect,
   serverTimestamp,
 } from 'firebase/database'
+import {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
+  signOut,
+  onAuthStateChanged,
+} from 'firebase/auth'
 import { nanoid } from 'nanoid'
 
 const requiredVars = [
@@ -42,13 +51,20 @@ const firebaseConfig = {
   appId:             import.meta.env.VITE_FIREBASE_APP_ID,
 }
 
-let app = null
-let db = null
+let app            = null
+let db             = null
+let auth           = null
+let googleProvider = null
 
 if (!missing.length) {
   try {
-    app = initializeApp(firebaseConfig)
-    db = getDatabase(app)
+    app  = initializeApp(firebaseConfig)
+    db   = getDatabase(app)
+    auth = getAuth(app)
+
+    googleProvider = new GoogleAuthProvider()
+    googleProvider.addScope('email')
+    googleProvider.addScope('profile')
   } catch (e) {
     console.error('Firebase initialization failed:', e)
   }
@@ -58,4 +74,24 @@ export function generateMemberId() {
   return nanoid(8)
 }
 
-export { app, db, ref, set, get, onValue, off, push, update, remove, onDisconnect, serverTimestamp }
+export {
+  app,
+  db,
+  auth,
+  googleProvider,
+  ref,
+  set,
+  get,
+  onValue,
+  off,
+  push,
+  update,
+  remove,
+  onDisconnect,
+  serverTimestamp,
+  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
+  signOut as firebaseSignOut,
+  onAuthStateChanged,
+}

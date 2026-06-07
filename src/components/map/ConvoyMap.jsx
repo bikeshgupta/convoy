@@ -71,7 +71,7 @@ export default function ConvoyMap({ members, waypoints, onMemberClick, onMapLoad
   }
 
   return (
-    <LoadScript googleMapsApiKey={apiKey} loadingElement={<div className="w-full h-full bg-bgdeep" />}>
+    <LoadScript googleMapsApiKey={apiKey} libraries={['places']} loadingElement={<div className="w-full h-full bg-bgdeep" />}>
       <GoogleMap
         mapContainerStyle={MAP_STYLES}
         center={myPos ?? { lat: 20.5937, lng: 78.9629 }}
