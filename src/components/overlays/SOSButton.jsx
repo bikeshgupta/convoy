@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { AlertTriangle } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { db, ref, push, serverTimestamp } from '../../firebase'
+import { useShallow } from 'zustand/shallow'
 import useTripStore from '../../store/tripStore'
 import { nanoid } from 'nanoid'
 
@@ -11,12 +12,12 @@ export default function SOSButton() {
   const intervalRef = useRef(null)
   const startRef    = useRef(null)
 
-  const { tripCode, memberId, myName, myPos } = useTripStore(s => ({
+  const { tripCode, memberId, myName, myPos } = useTripStore(useShallow(s => ({
     tripCode: s.tripCode,
     memberId: s.memberId,
     myName:   s.myName,
     myPos:    s.myPos,
-  }))
+  })))
 
   const triggerSOS = useCallback(() => {
     navigator.vibrate?.([200, 100, 200, 100, 200])

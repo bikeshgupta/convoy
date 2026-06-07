@@ -1,17 +1,18 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import BottomSheet from '../ui/BottomSheet'
+import { useShallow } from 'zustand/shallow'
 import useTripStore from '../../store/tripStore'
 import { format, isSameDay } from 'date-fns'
 
 export default function ChatPanel({ messages, sendMessage, onClose }) {
   const [text, setText] = useState('')
-  const { myName, memberId, myColor, activePanel } = useTripStore(s => ({
+  const { myName, memberId, myColor, activePanel } = useTripStore(useShallow(s => ({
     myName:      s.myName,
     memberId:    s.memberId,
     myColor:     s.myColor,
     activePanel: s.activePanel,
-  }))
+  })))
   const bottomRef = useRef(null)
 
   useEffect(() => {

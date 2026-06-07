@@ -2,6 +2,7 @@ import { useEffect, useState, useRef, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useShallow } from 'zustand/shallow'
 import useTripStore from '../store/tripStore'
 import useGeolocation from '../hooks/useGeolocation'
 import useTrip from '../hooks/useTrip'
@@ -27,7 +28,7 @@ export default function TripPage() {
   const {
     myName, memberId, myTransport, myColor, isObserver,
     setMyPos, setActivePanel, activePanel, clearUnread, unreadMessages, reset,
-  } = useTripStore(s => ({
+  } = useTripStore(useShallow(s => ({
     myName:          s.myName,
     memberId:        s.memberId,
     myTransport:     s.myTransport,
@@ -39,7 +40,7 @@ export default function TripPage() {
     clearUnread:     s.clearUnread,
     unreadMessages:  s.unreadMessages,
     reset:           s.reset,
-  }))
+  })))
 
   // Redirect if store is empty (page refresh)
   useEffect(() => {

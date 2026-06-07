@@ -1,18 +1,19 @@
 import { useEffect } from 'react'
 import { motion } from 'framer-motion'
 import confetti from 'canvas-confetti'
+import { useShallow } from 'zustand/shallow'
 import useTripStore from '../../store/tripStore'
 import Avatar from '../ui/Avatar'
 import { formatDuration } from '../../utils/time'
 
 export default function TripSummary({ members, waypointCount, messageCount, onClose }) {
-  const { tripCode, myName, myColor, myTransport, tripStartTime } = useTripStore(s => ({
+  const { tripCode, myName, myColor, myTransport, tripStartTime } = useTripStore(useShallow(s => ({
     tripCode:      s.tripCode,
     myName:        s.myName,
     myColor:       s.myColor,
     myTransport:   s.myTransport,
     tripStartTime: s.tripStartTime,
-  }))
+  })))
 
   const duration = tripStartTime ? formatDuration(Date.now() - tripStartTime) : '—'
   const allMembers = [{ id: 'me', name: myName, color: myColor, transport: myTransport, isOnline: true }, ...members]

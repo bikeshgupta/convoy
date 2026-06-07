@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { db, ref, set, get, onValue, off, update, onDisconnect, serverTimestamp } from '../firebase'
+import { useShallow } from 'zustand/shallow'
 import useTripStore from '../store/tripStore'
 import { haversineDistance } from '../utils/distance'
 
@@ -54,12 +55,12 @@ export default function useTrip(tripCode, memberId, memberData) {
   }, [tripCode, memberId]) // eslint-disable-line
 
   // Debounced GPS updates: push if 5s elapsed OR moved 10m
-  const { myPos, myTransport, myColor, isObserver } = useTripStore(s => ({
+  const { myPos, myTransport, myColor, isObserver } = useTripStore(useShallow(s => ({
     myPos:       s.myPos,
     myTransport: s.myTransport,
     myColor:     s.myColor,
     isObserver:  s.isObserver,
-  }))
+  })))
 
   useEffect(() => {
     if (!db || !tripCode || !memberId || isObserver || !myPos) return

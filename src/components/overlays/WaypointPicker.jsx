@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react'
 import BottomSheet from '../ui/BottomSheet'
+import { useShallow } from 'zustand/shallow'
 import useTripStore from '../../store/tripStore'
 import { db, ref, push, serverTimestamp } from '../../firebase'
 import toast from 'react-hot-toast'
@@ -20,13 +21,13 @@ export default function WaypointPicker({ onClose, mapCenterRef }) {
   const [label,    setLabel]    = useState('')
   const [dropping, setDropping] = useState(false)
 
-  const { tripCode, memberId, myName, myPos, activePanel } = useTripStore(s => ({
+  const { tripCode, memberId, myName, myPos, activePanel } = useTripStore(useShallow(s => ({
     tripCode:    s.tripCode,
     memberId:    s.memberId,
     myName:      s.myName,
     myPos:       s.myPos,
     activePanel: s.activePanel,
-  }))
+  })))
 
   const drop = async (useMapCenter = false) => {
     const pos = useMapCenter ? mapCenterRef?.current : myPos

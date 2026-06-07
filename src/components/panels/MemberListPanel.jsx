@@ -1,5 +1,6 @@
 import BottomSheet from '../ui/BottomSheet'
 import Avatar from '../ui/Avatar'
+import { useShallow } from 'zustand/shallow'
 import useTripStore from '../../store/tripStore'
 import { formatDistance, getDistanceStatus, haversineDistance } from '../../utils/distance'
 
@@ -11,13 +12,13 @@ const STATUS_COLORS = {
 }
 
 export default function MemberListPanel({ members, onMemberClick, onClose }) {
-  const { myName, myTransport, myColor, myPos, activePanel } = useTripStore(s => ({
+  const { myName, myTransport, myColor, myPos, activePanel } = useTripStore(useShallow(s => ({
     myName:      s.myName,
     myTransport: s.myTransport,
     myColor:     s.myColor,
     myPos:       s.myPos,
     activePanel: s.activePanel,
-  }))
+  })))
 
   const totalCount = members.length + 1
 

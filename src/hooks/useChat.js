@@ -1,17 +1,18 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { db, ref, onValue, off, push, serverTimestamp } from '../firebase'
+import { useShallow } from 'zustand/shallow'
 import useTripStore from '../store/tripStore'
 
 export default function useChat(tripCode, myMemberId) {
   const [messages, setMessages] = useState([])
   const [loading,  setLoading]  = useState(true)
 
-  const { myName, activePanel, incrementUnread, clearUnread } = useTripStore(s => ({
+  const { myName, activePanel, incrementUnread, clearUnread } = useTripStore(useShallow(s => ({
     myName:          s.myName,
     activePanel:     s.activePanel,
     incrementUnread: s.incrementUnread,
     clearUnread:     s.clearUnread,
-  }))
+  })))
 
   const activePanelRef = useRef(activePanel)
   useEffect(() => { activePanelRef.current = activePanel }, [activePanel])

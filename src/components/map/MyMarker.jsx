@@ -1,10 +1,11 @@
 import { OverlayView } from '@react-google-maps/api'
 import PulseRing from '../ui/PulseRing'
+import { useShallow } from 'zustand/shallow'
 import useTripStore from '../../store/tripStore'
 import { getTransportEmoji } from '../../utils/transport'
 
 export default function MyMarker() {
-  const { myPos, myTransport } = useTripStore(s => ({ myPos: s.myPos, myTransport: s.myTransport }))
+  const { myPos, myTransport } = useTripStore(useShallow(s => ({ myPos: s.myPos, myTransport: s.myTransport })))
   if (!myPos) return null
 
   return (

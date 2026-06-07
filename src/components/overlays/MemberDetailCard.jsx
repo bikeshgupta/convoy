@@ -1,17 +1,18 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import Avatar from '../ui/Avatar'
+import { useShallow } from 'zustand/shallow'
 import useTripStore from '../../store/tripStore'
 import { haversineDistance, formatDistance, getBearing, bearingToLabel } from '../../utils/distance'
 import { formatRelativeTime } from '../../utils/time'
 import { db, ref, push, serverTimestamp } from '../../firebase'
 
 export default function MemberDetailCard({ member, onClose }) {
-  const { myPos, myName, memberId, tripCode } = useTripStore(s => ({
+  const { myPos, myName, memberId, tripCode } = useTripStore(useShallow(s => ({
     myPos:    s.myPos,
     myName:   s.myName,
     memberId: s.memberId,
     tripCode: s.tripCode,
-  }))
+  })))
 
   if (!member) return null
 
