@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { db, ref, set, get, onValue, off, update, onDisconnect, serverTimestamp } from '../firebase'
+import { db, ref, set, get, onValue, update, onDisconnect, serverTimestamp } from '../firebase'
 import useTripStore from '../store/tripStore'
 import { haversineDistance } from '../utils/distance'
 
@@ -47,7 +47,7 @@ export default function useTrip(tripCode, memberId, memberData) {
     const connUnsub = onValue(connRef, snap => setIsConnected(!!snap.val()))
 
     return () => {
-      off(connRef, 'value', connUnsub)
+      connUnsub()
       update(memberRef, { isOnline: false, lastSeen: serverTimestamp() })
         .catch(() => {})
     }

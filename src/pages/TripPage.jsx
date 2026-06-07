@@ -17,7 +17,7 @@ import MemberListPanel from '../components/panels/MemberListPanel'
 import ChatPanel from '../components/panels/ChatPanel'
 import TripSummary from '../components/panels/TripSummary'
 import LoadingScreen from '../components/ui/LoadingScreen'
-import { db, ref, onValue, off, push, serverTimestamp } from '../firebase'
+import { db, ref, onValue, push, serverTimestamp } from '../firebase'
 import { getTransportEmoji } from '../utils/transport'
 
 export default function TripPage() {
@@ -83,7 +83,7 @@ export default function TripPage() {
       if (!snap.exists()) { setWaypoints([]); return }
       setWaypoints(Object.entries(snap.val()).map(([id, v]) => ({ id, ...v })))
     })
-    return () => off(wpRef, 'value', unsub)
+    return () => unsub()
   }, [codeParam])
 
   // Subscribe to SOS
@@ -100,7 +100,7 @@ export default function TripPage() {
         toast.error(`🆘 SOS from ${active[1].triggeredByName}!`, { duration: 10000 })
       }
     })
-    return () => off(sosRef, 'value', unsub)
+    return () => unsub()
   }, [codeParam, memberId])
 
   // Battery warning
@@ -119,10 +119,15 @@ export default function TripPage() {
     prevMemberCount.current = members.length
   }, [members.length]) // eslint-disable-line
 
-  // Connection banner
+  // Connection banner — only after we've been connected at least once
+  const wasConnected = useRef(false)
   useEffect(() => {
-    if (!isConnected && db) toast('📡 Connection lost — showing last known positions', { icon: '⚠️' })
-    else if (isConnected) toast.success('🔄 Reconnected', { duration: 2000 })
+    if (isConnected) {
+      if (wasConnected.current) toast.success('🔄 Reconnected', { duration: 2000 })
+      wasConnected.current = true
+    } else if (wasConnected.current && db) {
+      toast('📡 Connection lost — showing last known positions', { icon: '⚠️' })
+    }
   }, [isConnected])
 
   const handleLeave = () => {

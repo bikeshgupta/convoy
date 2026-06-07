@@ -7,6 +7,24 @@ import MemberMarker from './MemberMarker'
 import WaypointMarker from './WaypointMarker'
 import RoutePolyline from './RoutePolyline'
 
+function MapLoadingScreen() {
+  return (
+    <div
+      style={{
+        width: '100%', height: '100%',
+        background: '#080C14',
+        display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center', gap: 12,
+      }}
+    >
+      <div style={{ fontSize: 32 }}>🗺️</div>
+      <p style={{ fontFamily: '"Space Mono", monospace', color: '#4A7A9B', fontSize: 12 }}>
+        Loading map...
+      </p>
+    </div>
+  )
+}
+
 const MAP_OPTIONS = {
   mapTypeId:          'roadmap',
   disableDefaultUI:   true,
@@ -26,6 +44,7 @@ export default function ConvoyMap({ members, waypoints, onMemberClick, onMapLoad
   const myPos  = useTripStore(s => s.myPos)
   const mapRef = useRef(null)
   const [zoom, setZoom] = useState(15)
+  const [mapError, setMapError] = useState(null)
   const initialCentered = useRef(false)
 
   const handleLoad = useCallback(map => {
@@ -54,24 +73,40 @@ export default function ConvoyMap({ members, waypoints, onMemberClick, onMapLoad
   const zoomIn  = () => mapRef.current?.setZoom((mapRef.current.getZoom() ?? 15) + 1)
   const zoomOut = () => mapRef.current?.setZoom((mapRef.current.getZoom() ?? 15) - 1)
 
-  if (!apiKey) {
+  if (!apiKey || mapError) {
     return (
       <div className="w-full h-full bg-bgdeep flex items-center justify-center">
         <div className="text-center p-8 max-w-sm">
           <div className="text-4xl mb-4">🗺️</div>
-          <p className="font-mono text-textmuted text-sm">
-            Add <span className="text-accent">VITE_GOOGLE_MAPS_API_KEY</span> to .env to enable maps
-          </p>
-          <p className="font-mono text-textmuted text-xs mt-2 opacity-60">
-            The rest of the app works without it
-          </p>
+          {mapError ? (
+            <>
+              <p className="font-mono text-danger text-sm mb-2">Map failed to load</p>
+              <p className="font-mono text-textmuted text-xs opacity-60">{mapError}</p>
+              <p className="font-mono text-textmuted text-xs mt-2 opacity-60">
+                Check that your Google Maps API key is valid and authorized for this domain.
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="font-mono text-textmuted text-sm">
+                Add <span className="text-accent">VITE_GOOGLE_MAPS_API_KEY</span> to enable maps
+              </p>
+              <p className="font-mono text-textmuted text-xs mt-2 opacity-60">
+                The rest of the app works without it
+              </p>
+            </>
+          )}
         </div>
       </div>
     )
   }
 
   return (
-    <LoadScript googleMapsApiKey={apiKey} loadingElement={<div className="w-full h-full bg-bgdeep" />}>
+    <LoadScript
+      googleMapsApiKey={apiKey}
+      loadingElement={<MapLoadingScreen />}
+      onError={e => setMapError(e?.message ?? 'Unknown error')}
+    >
       <GoogleMap
         mapContainerStyle={MAP_STYLES}
         center={myPos ?? { lat: 20.5937, lng: 78.9629 }}

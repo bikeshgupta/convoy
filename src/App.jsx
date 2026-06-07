@@ -3,9 +3,11 @@ import { Toaster } from 'react-hot-toast'
 import JoinPage from './pages/JoinPage'
 import TripPage from './pages/TripPage'
 import NotFoundPage from './pages/NotFoundPage'
+import ErrorBoundary from './components/ui/ErrorBoundary'
 
 export default function App() {
   return (
+    <ErrorBoundary>
     <BrowserRouter>
       <Toaster
         position="top-center"
@@ -28,5 +30,6 @@ export default function App() {
         <Route path="*"               element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
+    </ErrorBoundary>
   )
 }

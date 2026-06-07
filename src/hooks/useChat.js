@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
-import { db, ref, onValue, off, push, serverTimestamp } from '../firebase'
+import { db, ref, onValue, push, serverTimestamp } from '../firebase'
 import useTripStore from '../store/tripStore'
 
 export default function useChat(tripCode, myMemberId) {
@@ -38,7 +38,7 @@ export default function useChat(tripCode, myMemberId) {
       })
     })
 
-    return () => off(chatRef, 'value', unsub)
+    return () => unsub()
   }, [tripCode]) // eslint-disable-line
 
   const sendMessage = useCallback((text, type = 'text') => {

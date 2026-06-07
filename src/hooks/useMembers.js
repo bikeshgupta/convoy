@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { db, ref, onValue, off } from '../firebase'
+import { db, ref, onValue } from '../firebase'
 import useTripStore from '../store/tripStore'
 import { haversineDistance } from '../utils/distance'
 
@@ -51,7 +51,7 @@ export default function useMembers(tripCode, myMemberId) {
       setTotalCount(list.length)
     })
 
-    return () => off(membersRef, 'value', unsub)
+    return () => unsub()
   }, [tripCode, myMemberId, myPos])
 
   return { members, onlineCount, totalCount }
