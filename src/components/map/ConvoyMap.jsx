@@ -107,8 +107,13 @@ function MapControlBtn({ onClick, children, title }) {
     <button
       onClick={onClick}
       title={title}
-      className="w-10 h-10 rounded-xl font-mono text-lg text-textprimary flex items-center justify-center select-none"
-      style={{ background: 'rgba(13,26,42,0.9)', border: '1px solid #1A3A5C', boxShadow: '0 2px 8px rgba(0,0,0,0.4)' }}
+      className="w-10 h-10 rounded-xl font-mono text-lg flex items-center justify-center select-none"
+      style={{
+        background: 'rgba(255,255,255,0.92)',
+        border:     '1px solid rgba(0,0,0,0.12)',
+        boxShadow:  '0 2px 8px rgba(0,0,0,0.15)',
+        color:      '#0F172A',
+      }}
     >
       {children}
     </button>
