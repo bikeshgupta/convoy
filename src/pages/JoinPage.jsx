@@ -258,9 +258,22 @@ export default function JoinPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
         >
-          {!user && (
+          {/* New-trip Google requirement notice */}
+          {tripInfo !== null && !tripInfo.exists && !user && (
+            <div
+              className="flex items-center gap-2 rounded-xl px-3.5 py-2.5"
+              style={{ background: '#FEF3C7', border: '1px solid #FCD34D' }}
+            >
+              <span className="text-base flex-shrink-0">🔒</span>
+              <p className="font-body text-amber-800 text-xs font-medium">
+                Sign in with Google above to start a new trip
+              </p>
+            </div>
+          )}
+
+          {!user && !(tripInfo !== null && !tripInfo.exists) && (
             <p className="font-mono text-slate-400 text-center" style={{ fontSize: 10 }}>
-              Sign in above to save trip history across devices
+              Sign in to save trip history across devices
             </p>
           )}
 
@@ -328,16 +341,29 @@ export default function JoinPage() {
             </div>
           </div>
 
-          {/* Join button */}
-          <motion.button
-            onClick={join}
-            disabled={!name.trim() || !code.trim() || loading}
-            className="w-full py-4 rounded-xl font-mono font-bold text-sm uppercase tracking-widest transition-all disabled:opacity-40"
-            style={{ background: '#00FF88', color: '#0F172A', letterSpacing: 2 }}
-            whileTap={{ scale: 0.97 }}
-          >
-            {loading ? '📡 Locating...' : 'Join Trip →'}
-          </motion.button>
+          {/* Join button — blocked for new trips without Google auth */}
+          {tripInfo !== null && !tripInfo.exists && !user ? (
+            <motion.button
+              onClick={handleGoogleSignIn}
+              disabled={signingIn}
+              className="w-full py-4 rounded-xl font-mono font-bold text-sm uppercase tracking-widest transition-all disabled:opacity-60 flex items-center justify-center gap-2"
+              style={{ background: '#00FF88', color: '#0F172A', letterSpacing: 2 }}
+              whileTap={{ scale: 0.97 }}
+            >
+              <GoogleIcon />
+              {signingIn ? 'Signing in…' : 'Sign in to Start Trip'}
+            </motion.button>
+          ) : (
+            <motion.button
+              onClick={join}
+              disabled={!name.trim() || !code.trim() || loading}
+              className="w-full py-4 rounded-xl font-mono font-bold text-sm uppercase tracking-widest transition-all disabled:opacity-40"
+              style={{ background: '#00FF88', color: '#0F172A', letterSpacing: 2 }}
+              whileTap={{ scale: 0.97 }}
+            >
+              {loading ? '📡 Locating...' : tripInfo?.exists ? 'Join Trip →' : 'Start Trip →'}
+            </motion.button>
+          )}
 
           <p className="font-mono text-slate-400 text-center" style={{ fontSize: 11 }}>
             No account needed · Works on any phone

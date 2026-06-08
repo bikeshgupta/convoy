@@ -5,12 +5,14 @@ import useTripStore from '../store/tripStore'
 import { haversineDistance } from '../utils/distance'
 
 export default function useTrip(tripCode, memberId, memberData) {
-  const [tripExists,   setTripExists]   = useState(false)
-  const [isConnected,  setIsConnected]  = useState(false)
-  const [error,        setError]        = useState(null)
-  const setTripStartTime = useTripStore(s => s.setTripStartTime)
+  const [tripExists,  setTripExists]  = useState(false)
+  const [isConnected, setIsConnected] = useState(false)
+  const [error,       setError]       = useState(null)
 
-  const lastPushPos = useRef(null)
+  const setTripStartTime = useTripStore(s => s.setTripStartTime)
+  const setIsCreator     = useTripStore(s => s.setIsCreator)
+
+  const lastPushPos  = useRef(null)
   const lastPushTime = useRef(0)
 
   useEffect(() => {
@@ -25,18 +27,19 @@ export default function useTrip(tripCode, memberId, memberData) {
         const metaSnap = await get(metaRef)
         if (!metaSnap.exists()) {
           await set(metaRef, {
-            createdAt:  serverTimestamp(),
-            createdBy:  memberId,
-            isActive:   true,
+            createdAt: serverTimestamp(),
+            createdBy: memberId,
+            isActive:  true,
           })
           setTripStartTime(Date.now())
+          setIsCreator(true)
         } else {
           setTripExists(true)
           setTripStartTime(metaSnap.val().createdAt ?? Date.now())
+          setIsCreator(metaSnap.val().createdBy === memberId)
         }
 
         await set(memberRef, { ...memberData, joinedAt: serverTimestamp() })
-
         onDisconnect(memberRef).update({ isOnline: false, lastSeen: serverTimestamp() })
       } catch (e) {
         setError(e.message)
@@ -49,8 +52,7 @@ export default function useTrip(tripCode, memberId, memberData) {
 
     return () => {
       off(connRef, 'value', connUnsub)
-      update(memberRef, { isOnline: false, lastSeen: serverTimestamp() })
-        .catch(() => {})
+      update(memberRef, { isOnline: false, lastSeen: serverTimestamp() }).catch(() => {})
     }
   }, [tripCode, memberId]) // eslint-disable-line
 
@@ -65,10 +67,10 @@ export default function useTrip(tripCode, memberId, memberData) {
   useEffect(() => {
     if (!db || !tripCode || !memberId || isObserver || !myPos) return
 
-    const now = Date.now()
+    const now         = Date.now()
     const movedEnough = !lastPushPos.current
       || haversineDistance(lastPushPos.current.lat, lastPushPos.current.lng, myPos.lat, myPos.lng) >= 10
-    const timeEnough = now - lastPushTime.current >= 5000
+    const timeEnough  = now - lastPushTime.current >= 5000
 
     if (!movedEnough && !timeEnough) return
 
@@ -79,9 +81,9 @@ export default function useTrip(tripCode, memberId, memberData) {
     update(memberRef, {
       lat:      myPos.lat,
       lng:      myPos.lng,
-      speed:    memberData?.speed ?? 0,
-      heading:  memberData?.heading ?? 0,
-      battery:  memberData?.battery ?? 100,
+      speed:    memberData?.speed    ?? 0,
+      heading:  memberData?.heading  ?? 0,
+      battery:  memberData?.battery  ?? 100,
       accuracy: memberData?.accuracy ?? 0,
       lastSeen: serverTimestamp(),
       isOnline: true,

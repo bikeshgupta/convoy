@@ -1,5 +1,5 @@
 import { useRef, useState, useCallback } from 'react'
-import { GoogleMap, LoadScript } from '@react-google-maps/api'
+import { GoogleMap, LoadScript, Polyline } from '@react-google-maps/api'
 import mapStyle from '../../utils/mapStyle'
 import useTripStore from '../../store/tripStore'
 import MyMarker from './MyMarker'
@@ -7,50 +7,48 @@ import MemberMarker from './MemberMarker'
 import WaypointMarker from './WaypointMarker'
 import RoutePolyline from './RoutePolyline'
 
+const LIBRARIES = ['places']
+
 const MAP_OPTIONS = {
-  mapTypeId:          'roadmap',
-  disableDefaultUI:   true,
-  gestureHandling:    'greedy',
-  minZoom:            5,
-  maxZoom:            19,
-  clickableIcons:     false,
+  mapTypeId:        'roadmap',
+  disableDefaultUI: true,
+  gestureHandling:  'greedy',
+  minZoom:          5,
+  maxZoom:          19,
+  clickableIcons:   false,
 }
 
-const MAP_STYLES = {
-  width:  '100%',
-  height: '100%',
-}
+const MAP_STYLES = { width: '100%', height: '100%' }
 
 export default function ConvoyMap({ members, waypoints, onMemberClick, onMapLoad }) {
-  const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
-  const myPos  = useTripStore(s => s.myPos)
-  const mapRef = useRef(null)
-  const [zoom, setZoom] = useState(15)
-  const initialCentered = useRef(false)
+  const apiKey  = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
+  const { myPos, routePath, setMapsLoaded } = useTripStore(s => ({
+    myPos:         s.myPos,
+    routePath:     s.routePath,
+    setMapsLoaded: s.setMapsLoaded,
+  }))
+
+  const mapRef            = useRef(null)
+  const [zoom, setZoom]   = useState(15)
+  const initialCentered   = useRef(false)
 
   const handleLoad = useCallback(map => {
     mapRef.current = map
     onMapLoad?.(map)
-  }, [onMapLoad])
+    setMapsLoaded(true) // signals useRoute that window.google is ready
+  }, [onMapLoad, setMapsLoaded])
 
   const handleIdle = useCallback(() => {
     if (mapRef.current) setZoom(mapRef.current.getZoom())
   }, [])
 
-  // Center on myPos only on first fix
-  const prevMyPos = useRef(null)
   if (myPos && !initialCentered.current) {
     initialCentered.current = true
-    prevMyPos.current = myPos
   }
 
   const centerOnMe = () => {
-    if (mapRef.current && myPos) {
-      mapRef.current.panTo(myPos)
-      mapRef.current.setZoom(16)
-    }
+    if (mapRef.current && myPos) { mapRef.current.panTo(myPos); mapRef.current.setZoom(16) }
   }
-
   const zoomIn  = () => mapRef.current?.setZoom((mapRef.current.getZoom() ?? 15) + 1)
   const zoomOut = () => mapRef.current?.setZoom((mapRef.current.getZoom() ?? 15) - 1)
 
@@ -62,16 +60,17 @@ export default function ConvoyMap({ members, waypoints, onMemberClick, onMapLoad
           <p className="font-mono text-textmuted text-sm">
             Add <span className="text-accent">VITE_GOOGLE_MAPS_API_KEY</span> to .env to enable maps
           </p>
-          <p className="font-mono text-textmuted text-xs mt-2 opacity-60">
-            The rest of the app works without it
-          </p>
         </div>
       </div>
     )
   }
 
   return (
-    <LoadScript googleMapsApiKey={apiKey} libraries={['places']} loadingElement={<div className="w-full h-full bg-bgdeep" />}>
+    <LoadScript
+      googleMapsApiKey={apiKey}
+      libraries={LIBRARIES}
+      loadingElement={<div className="w-full h-full bg-bgdeep" />}
+    >
       <GoogleMap
         mapContainerStyle={MAP_STYLES}
         center={myPos ?? { lat: 20.5937, lng: 78.9629 }}
@@ -80,13 +79,30 @@ export default function ConvoyMap({ members, waypoints, onMemberClick, onMapLoad
         onLoad={handleLoad}
         onIdle={handleIdle}
       >
+        {/* Planned route line through stops */}
+        {routePath && routePath.length > 1 && (
+          <Polyline
+            path={routePath}
+            options={{
+              strokeColor:   '#00D4FF',
+              strokeOpacity: 0.75,
+              strokeWeight:  5,
+              geodesic:      true,
+            }}
+          />
+        )}
+
         <MyMarker />
+
         {members.map(m => (
           <MemberMarker key={m.id} member={m} onClick={onMemberClick} />
         ))}
+
         {waypoints.map(w => (
           <WaypointMarker key={w.id} waypoint={w} />
         ))}
+
+        {/* Dashed lines from me to each member (subtle) */}
         {members.map(m => (
           <RoutePolyline key={m.id} from={myPos} to={m} color={m.color} />
         ))}
