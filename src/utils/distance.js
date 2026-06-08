@@ -37,3 +37,23 @@ export function getDistanceStatus(meters) {
   if (meters < 5000) return 'far'
   return 'critical'
 }
+
+// Minimum distance (meters) from `point` to the closest point on a polyline path
+export function distanceToPolyline(point, path) {
+  if (!path || path.length < 2) return Infinity
+  let minDist = Infinity
+  for (let i = 0; i < path.length - 1; i++) {
+    const d = distanceToSegment(point, path[i], path[i + 1])
+    if (d < minDist) minDist = d
+  }
+  return minDist
+}
+
+function distanceToSegment(p, A, B) {
+  const AB = { lat: B.lat - A.lat, lng: B.lng - A.lng }
+  const AP = { lat: p.lat - A.lat, lng: p.lng - A.lng }
+  const ab2 = AB.lat * AB.lat + AB.lng * AB.lng
+  if (ab2 === 0) return haversineDistance(p.lat, p.lng, A.lat, A.lng)
+  const t = Math.max(0, Math.min(1, (AP.lat * AB.lat + AP.lng * AB.lng) / ab2))
+  return haversineDistance(p.lat, p.lng, A.lat + t * AB.lat, A.lng + t * AB.lng)
+}
