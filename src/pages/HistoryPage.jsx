@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { ArrowLeft, Clock, Users, MapPin, MessageCircle, Map } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { db, ref, get } from '../firebase'
 import { formatDuration } from '../utils/time'
@@ -8,7 +9,7 @@ import { formatDuration } from '../utils/time'
 export default function HistoryPage() {
   const { user, loading, signOut } = useAuth()
   const navigate = useNavigate()
-  const [trips, setTrips] = useState([])
+  const [trips,    setTrips]    = useState([])
   const [fetching, setFetching] = useState(true)
 
   useEffect(() => {
@@ -32,56 +33,63 @@ export default function HistoryPage() {
     return (
       <div
         className="min-h-screen flex items-center justify-center"
-        style={{ background: 'linear-gradient(150deg, #EEF2FF 0%, #F0FDF4 55%, #E0F2FE 100%)' }}
+        style={{ background: 'linear-gradient(180deg, #F8FAFC 0%, #F1F5F9 100%)' }}
       >
-        <div className="font-mono text-slate-500 text-sm animate-pulse">Loading history…</div>
+        <div className="text-sm text-slate-400 animate-pulse">Loading history…</div>
       </div>
     )
   }
 
   return (
     <div
-      className="min-h-screen flex flex-col relative"
-      style={{ background: 'linear-gradient(150deg, #EEF2FF 0%, #F0FDF4 55%, #E0F2FE 100%)' }}
+      className="min-h-screen"
+      style={{ background: 'linear-gradient(180deg, #F8FAFC 0%, #F1F5F9 100%)' }}
     >
-      {/* Dot grid */}
+      {/* Subtle dot grid */}
       <div
-        className="absolute inset-0 pointer-events-none"
+        className="fixed inset-0 pointer-events-none"
         style={{
           backgroundImage: 'radial-gradient(circle at 1px 1px, #CBD5E1 1px, transparent 0)',
-          backgroundSize:  '28px 28px',
-          opacity:         0.6,
+          backgroundSize:  '32px 32px',
+          opacity:         0.35,
         }}
       />
 
-      <div className="relative z-10 flex flex-col items-center px-4 pt-12 pb-10">
+      <div className="relative z-10 flex flex-col items-center px-4 pt-10 pb-12 max-w-sm mx-auto">
+
         {/* Header */}
         <motion.div
-          className="w-full max-w-sm mb-6"
-          initial={{ opacity: 0, y: -16 }}
+          className="w-full mb-6"
+          initial={{ opacity: 0, y: -12 }}
           animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35 }}
         >
           <button
             onClick={() => navigate('/')}
-            className="font-mono text-slate-500 text-sm mb-4 flex items-center gap-1 hover:text-slate-700 transition-colors"
+            className="flex items-center gap-1.5 text-sm text-slate-500 mb-5 hover:text-slate-700 transition-colors"
           >
-            ← Back
+            <ArrowLeft size={15} strokeWidth={2} />
+            Back
           </button>
 
           <div className="flex items-center justify-between">
             <div>
-              <div className="font-display text-4xl" style={{ color: '#0F172A', letterSpacing: 4 }}>
-                MY TRIPS
-              </div>
-              <p className="font-body text-slate-500 text-sm mt-0.5">
+              <h1
+                className="font-sans font-extrabold"
+                style={{ fontSize: 28, color: '#0F172A', letterSpacing: '-0.025em', lineHeight: 1.1 }}
+              >
+                My Trips
+              </h1>
+              <p className="text-sm text-slate-500 mt-1">
                 {user.displayName ?? user.email}
               </p>
             </div>
             {user.photoURL && (
               <img
                 src={user.photoURL}
-                alt="avatar"
-                className="w-11 h-11 rounded-full border-2 border-white shadow"
+                alt=""
+                className="w-11 h-11 rounded-full shadow-sm"
+                style={{ outline: '2px solid #fff', outlineOffset: 1 }}
               />
             )}
           </div>
@@ -90,26 +98,36 @@ export default function HistoryPage() {
         {/* Trip list */}
         {trips.length === 0 ? (
           <motion.div
-            className="w-full max-w-sm rounded-3xl p-10 text-center"
-            style={{ background: '#FFFFFF', boxShadow: '0 4px 20px rgba(15,23,42,0.08)' }}
-            initial={{ opacity: 0, y: 20 }}
+            className="w-full rounded-card p-10 text-center bg-white"
+            style={{ boxShadow: '0 4px 20px rgba(15,23,42,0.07)' }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <div className="text-5xl mb-3">🗺️</div>
-            <p className="font-mono text-slate-500 text-sm">No trips yet</p>
-            <p className="font-body text-slate-400 text-xs mt-1">Your completed trips will appear here</p>
+            <div
+              className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4"
+              style={{ background: '#F1F5F9' }}
+            >
+              <Map size={24} color="#94A3B8" strokeWidth={1.5} />
+            </div>
+            <p className="text-sm font-semibold text-slate-700">No trips yet</p>
+            <p className="text-xs text-slate-400 mt-1">Your completed trips will appear here</p>
             <button
               onClick={() => navigate('/')}
-              className="mt-5 px-6 py-2.5 rounded-xl font-mono font-bold text-sm text-slate-800"
-              style={{ background: '#00FF88' }}
+              className="mt-5 px-6 py-2.5 rounded-btn text-sm font-semibold text-white transition-opacity hover:opacity-90"
+              style={{ background: '#111827' }}
             >
-              Start a Trip →
+              Start a Trip
             </button>
           </motion.div>
         ) : (
-          <div className="w-full max-w-sm space-y-3">
+          <div className="w-full space-y-3">
             {trips.map((trip, i) => (
-              <TripCard key={trip.tripCode} trip={trip} index={i} onRejoin={() => navigate(`/?code=${trip.tripCode}`)} />
+              <TripCard
+                key={trip.tripCode ?? i}
+                trip={trip}
+                index={i}
+                onRejoin={() => navigate(`/?code=${trip.tripCode}`)}
+              />
             ))}
           </div>
         )}
@@ -117,7 +135,7 @@ export default function HistoryPage() {
         {/* Sign out */}
         <motion.button
           onClick={async () => { await signOut(); navigate('/') }}
-          className="mt-8 font-mono text-xs text-slate-400 hover:text-red-400 transition-colors"
+          className="mt-8 text-xs text-slate-400 hover:text-red-400 transition-colors"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
@@ -130,44 +148,53 @@ export default function HistoryPage() {
 }
 
 function TripCard({ trip, index, onRejoin }) {
-  const date     = trip.exitedAt ? new Date(trip.exitedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'
-  const duration = trip.exitedAt && trip.joinedAt ? formatDuration(trip.exitedAt - trip.joinedAt) : '—'
+  const date     = trip.exitedAt
+    ? new Date(trip.exitedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+    : '—'
+  const duration = trip.exitedAt && trip.joinedAt
+    ? formatDuration(trip.exitedAt - trip.joinedAt)
+    : '—'
+
+  const stats = [
+    { Icon: Clock,         value: duration,              label: 'duration'  },
+    { Icon: Users,         value: trip.memberCount ?? 1,  label: 'members'   },
+    { Icon: MapPin,        value: trip.waypointCount ?? 0, label: 'waypoints' },
+    { Icon: MessageCircle, value: trip.messageCount ?? 0,  label: 'messages'  },
+  ]
 
   return (
     <motion.div
-      className="rounded-2xl p-5"
-      style={{ background: '#FFFFFF', boxShadow: '0 2px 12px rgba(15,23,42,0.07)', border: '1px solid rgba(226,232,240,0.8)' }}
-      initial={{ opacity: 0, y: 20 }}
+      className="rounded-[20px] p-5 bg-white"
+      style={{ boxShadow: '0 2px 12px rgba(15,23,42,0.06)', border: '1px solid #F1F5F9' }}
+      initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.06 }}
+      transition={{ delay: index * 0.05 }}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
-          <div className="font-mono font-bold text-slate-800 text-base tracking-widest">
+          <div
+            className="font-medium text-slate-800 text-[15px] tracking-[0.05em]"
+            style={{ fontFamily: '"Space Mono", monospace' }}
+          >
             {trip.tripCode}
           </div>
-          <div className="font-body text-slate-500 text-xs mt-0.5">{date}</div>
+          <div className="text-xs text-slate-400 mt-0.5">{date}</div>
         </div>
         <button
           onClick={onRejoin}
-          className="flex-shrink-0 px-3 py-1.5 rounded-lg font-mono font-bold text-xs text-slate-800 transition-opacity hover:opacity-80"
-          style={{ background: '#00FF88' }}
+          className="flex-shrink-0 px-3 py-1.5 rounded-[10px] text-xs font-semibold transition-opacity hover:opacity-80"
+          style={{ background: '#F1F5F9', color: '#374151' }}
         >
-          Rejoin →
+          Rejoin
         </button>
       </div>
 
-      <div className="flex gap-4 mt-3">
-        {[
-          { icon: '⏱️', value: duration,              label: 'duration'  },
-          { icon: '👥', value: trip.memberCount ?? 1,  label: 'members'   },
-          { icon: '📍', value: trip.waypointCount ?? 0, label: 'waypoints' },
-          { icon: '💬', value: trip.messageCount ?? 0,  label: 'messages'  },
-        ].map(s => (
-          <div key={s.label} className="flex flex-col items-center gap-0.5">
-            <span className="text-sm">{s.icon}</span>
-            <span className="font-mono font-bold text-slate-700 text-xs">{s.value}</span>
-            <span className="font-mono text-slate-400" style={{ fontSize: 9 }}>{s.label}</span>
+      <div className="flex gap-5 mt-4">
+        {stats.map(s => (
+          <div key={s.label} className="flex flex-col items-center gap-1">
+            <s.Icon size={13} color="#94A3B8" strokeWidth={1.75} />
+            <span className="text-xs font-semibold text-slate-700 tabular-nums">{s.value}</span>
+            <span className="text-[9px] text-slate-400 uppercase tracking-wide">{s.label}</span>
           </div>
         ))}
       </div>
