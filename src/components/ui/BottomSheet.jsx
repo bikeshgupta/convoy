@@ -47,8 +47,8 @@ export default function BottomSheet({ isOpen, onClose, children, title, height =
 
             {title && (
               <div
-                className="font-mono text-textmuted text-xs tracking-widest uppercase px-5 pb-3 pt-1 border-b flex-shrink-0"
-                style={{ borderColor: '#1A3A5C' }}
+                className="text-textmuted text-xs font-semibold tracking-wide uppercase px-5 pb-3 pt-1 border-b flex-shrink-0"
+                style={{ borderColor: '#1A3A5C', fontFamily: 'Inter, system-ui, sans-serif' }}
               >
                 {title}
               </div>

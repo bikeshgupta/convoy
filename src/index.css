@@ -13,22 +13,24 @@ html, body, #root {
   height: 100%;
   background: #080C14;
   color: #E0F0FF;
+  font-family: 'Inter', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 @layer utilities {
   .font-display { font-family: 'Bebas Neue', cursive; }
-  .font-mono    { font-family: 'Space Mono', monospace; }
-  .font-body    { font-family: 'Inter', sans-serif; }
+  .font-mono    { font-family: 'Space Mono', ui-monospace, monospace; }
+  .font-body    { font-family: 'Inter', system-ui, sans-serif; }
+  .font-sans    { font-family: 'Inter', system-ui, sans-serif; }
 }
 
-/* Scrollbar styling */
-::-webkit-scrollbar { width: 4px; height: 4px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #1A3A5C; border-radius: 2px; }
+/* Scrollbar */
+::-webkit-scrollbar        { width: 4px; height: 4px; }
+::-webkit-scrollbar-track  { background: transparent; }
+::-webkit-scrollbar-thumb  { background: #1A3A5C; border-radius: 2px; }
 
-/* Smooth position transitions for map markers */
+/* Map marker position transitions */
 .marker-transition {
   transition: transform 0.5s ease;
 }
