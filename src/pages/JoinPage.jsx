@@ -79,8 +79,13 @@ export default function JoinPage() {
     setSigningIn(true)
     try {
       await signInWithGoogle()
-    } catch {
-      toast.error('Sign-in failed. Please try again.')
+    } catch (err) {
+      const msg = err?.code === 'auth/popup-blocked'
+        ? 'Pop-up blocked — please allow pop-ups for this site'
+        : err?.code === 'auth/network-request-failed'
+        ? 'Network error — check your connection'
+        : 'Sign-in failed. Please try again.'
+      toast.error(msg)
     } finally {
       setSigningIn(false)
     }
@@ -91,6 +96,11 @@ export default function JoinPage() {
     const upperCode = code.toUpperCase()
     if (!validateTripCode(upperCode)) {
       toast.error('Invalid trip code format')
+      return
+    }
+    // New trips require authentication
+    if (tripInfo !== null && !tripInfo.exists && !user) {
+      toast('Sign in with Google to start a new trip', { icon: null })
       return
     }
     setLoading(true)
@@ -155,6 +165,7 @@ export default function JoinPage() {
     )
   }
 
+  // True when user typed a code that doesn't exist yet and isn't signed in
   const showNewTripNotice = tripInfo !== null && !tripInfo.exists && !user
 
   return (
@@ -162,7 +173,7 @@ export default function JoinPage() {
       className="min-h-screen"
       style={{ background: 'linear-gradient(180deg, #F8FAFC 0%, #F1F5F9 100%)' }}
     >
-      {/* Almost-invisible dot grid */}
+      {/* Subtle dot grid */}
       <div
         className="fixed inset-0 pointer-events-none"
         style={{
@@ -174,9 +185,9 @@ export default function JoinPage() {
 
       <div className="relative z-10 flex flex-col items-center min-h-screen px-4 pt-12 pb-10 max-w-sm mx-auto">
 
-        {/* ── Logo ─────────────────────────────────────────────────── */}
+        {/* ── Wordmark ──────────────────────────────────────────────── */}
         <motion.div
-          className="text-center mb-7"
+          className="text-center mb-6"
           initial={{ opacity: 0, y: -12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
@@ -187,100 +198,69 @@ export default function JoinPage() {
           >
             CONVOY
           </h1>
-          <p className="text-sm text-slate-500 mt-1.5 font-sans">
+          <p className="text-sm text-slate-500 mt-1.5">
             Trusted group travel coordination
           </p>
         </motion.div>
 
-        {/* ── Auth card ────────────────────────────────────────────── */}
+        {/* ── Single unified card ───────────────────────────────────── */}
         <motion.div
-          className="w-full mb-3"
-          initial={{ opacity: 0, y: 10 }}
+          className="w-full bg-white rounded-card overflow-hidden"
+          style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.09)' }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35, delay: 0.07, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.4, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
         >
-          <AnimatePresence mode="wait">
-            {user ? (
+          {/* Profile header — slides in when signed in */}
+          <AnimatePresence initial={false}>
+            {user && (
               <motion.div
-                key="profile"
-                className="w-full flex items-center justify-between p-4 bg-white rounded-card"
-                style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 8px 20px rgba(0,0,0,0.06)' }}
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                transition={{ duration: 0.18 }}
+                key="profile-header"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 35 }}
               >
-                <div className="flex items-center gap-3">
-                  {user.photoURL ? (
-                    <img
-                      src={user.photoURL}
-                      alt=""
-                      className="w-9 h-9 rounded-full shadow-sm"
-                      style={{ outline: '2px solid #fff', outlineOffset: 1 }}
-                    />
-                  ) : (
-                    <div
-                      className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
-                      style={{ background: '#EFF6FF' }}
-                    >
-                      <Users size={15} color="#2563EB" />
+                <div className="flex items-center justify-between px-6 pt-5 pb-4">
+                  <div className="flex items-center gap-3 min-w-0">
+                    {user.photoURL ? (
+                      <img
+                        src={user.photoURL}
+                        alt=""
+                        className="w-8 h-8 rounded-full flex-shrink-0"
+                        style={{ outline: '2px solid #E2E8F0', outlineOffset: 1 }}
+                      />
+                    ) : (
+                      <div
+                        className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                        style={{ background: '#EFF6FF' }}
+                      >
+                        <Users size={14} color="#2563EB" />
+                      </div>
+                    )}
+                    <div className="min-w-0">
+                      <div className="text-sm font-semibold text-slate-800 leading-tight truncate">
+                        {user.displayName ?? user.email}
+                      </div>
+                      <div className="text-xs text-slate-400 mt-0.5">Signed in with Google</div>
                     </div>
-                  )}
-                  <div>
-                    <div className="text-sm font-semibold text-slate-800 leading-tight">
-                      {user.displayName ?? user.email}
-                    </div>
-                    <div className="text-xs text-slate-400 mt-0.5">Signed in with Google</div>
                   </div>
+                  <button
+                    onClick={() => navigate('/history')}
+                    className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-[8px] transition-opacity hover:opacity-80 flex-shrink-0 ml-2"
+                    style={{ background: '#EFF6FF', color: '#2563EB' }}
+                  >
+                    My Trips
+                    <ChevronRight size={12} strokeWidth={2.5} />
+                  </button>
                 </div>
-                <button
-                  onClick={() => navigate('/history')}
-                  className="flex items-center gap-1 text-sm font-medium px-3 py-1.5 rounded-[10px] transition-opacity hover:opacity-80"
-                  style={{ background: '#EFF6FF', color: '#2563EB' }}
-                >
-                  My Trips
-                  <ChevronRight size={13} strokeWidth={2.5} />
-                </button>
-              </motion.div>
-            ) : (
-              <motion.div
-                key="signin"
-                className="w-full p-5 bg-white rounded-card"
-                style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 8px 20px rgba(0,0,0,0.06)' }}
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                transition={{ duration: 0.18 }}
-              >
-                <motion.button
-                  onClick={handleGoogleSignIn}
-                  disabled={signingIn}
-                  className="w-full flex items-center justify-center gap-2.5 py-3 font-semibold text-sm text-slate-700 transition-opacity disabled:opacity-60 hover:opacity-90 rounded-btn"
-                  style={{ background: '#F8FAFC', border: '1px solid #E2E8F0' }}
-                  whileTap={{ scale: 0.98 }}
-                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                >
-                  <GoogleIcon />
-                  {signingIn ? 'Signing in…' : 'Continue with Google'}
-                </motion.button>
-                <div className="flex items-center justify-center gap-4 mt-3.5 flex-wrap">
-                  {['Save trips', 'Sync devices', 'View history'].map(b => (
-                    <div key={b} className="flex items-center gap-1.5">
-                      <Check size={11} color="#10B981" strokeWidth={2.5} />
-                      <span className="text-xs text-slate-500">{b}</span>
-                    </div>
-                  ))}
-                </div>
+                <div className="h-px mx-0" style={{ background: '#F1F5F9' }} />
               </motion.div>
             )}
           </AnimatePresence>
-        </motion.div>
 
-        {/* ── Form card ────────────────────────────────────────────── */}
-        <motion.div
-          className="w-full bg-white rounded-card"
-          style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.08)' }}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.12, ease: [0.16, 1, 0.3, 1] }}
-        >
-          <div className="p-6 space-y-5">
+          {/* Form fields */}
+          <div className="px-6 pt-5 pb-5 space-y-5">
 
             {/* Name */}
             <div className="space-y-2">
@@ -310,9 +290,9 @@ export default function JoinPage() {
                   maxLength={10}
                   className="w-full px-4 py-3 pr-24 text-sm text-slate-800 outline-none transition-all rounded-input"
                   style={{
-                    background:  '#F8FAFC',
-                    border:      '1.5px solid #E2E8F0',
-                    fontFamily:  '"Space Mono", monospace',
+                    background:    '#F8FAFC',
+                    border:        '1.5px solid #E2E8F0',
+                    fontFamily:    '"Space Mono", monospace',
                     letterSpacing: '0.06em',
                   }}
                   onFocus={e => { e.target.style.borderColor = '#2563EB'; e.target.style.background = '#fff' }}
@@ -327,10 +307,7 @@ export default function JoinPage() {
                   Generate
                 </button>
               </div>
-              <p
-                className="text-xs ml-0.5"
-                style={{ color: getTripInfoColor(tripInfo, code) }}
-              >
+              <p className="text-xs ml-0.5" style={{ color: getTripInfoColor(tripInfo, code) }}>
                 {getTripInfoText(tripInfo, code)}
               </p>
             </div>
@@ -367,56 +344,97 @@ export default function JoinPage() {
               </div>
             </div>
 
-            {/* New-trip auth notice */}
-            <AnimatePresence>
-              {showNewTripNotice && (
-                <motion.div
-                  className="flex items-center gap-2.5 rounded-btn p-3 overflow-hidden"
-                  style={{ background: '#EFF6FF' }}
-                  initial={{ opacity: 0, height: 0, marginTop: 0 }}
-                  animate={{ opacity: 1, height: 'auto', marginTop: undefined }}
-                  exit={{ opacity: 0, height: 0, marginTop: 0 }}
-                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                >
-                  <Info size={14} color="#2563EB" className="flex-shrink-0" />
-                  <p className="text-xs font-medium" style={{ color: '#1E40AF' }}>
-                    Sign in with Google to start a new trip
-                  </p>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* CTA */}
-            {showNewTripNotice ? (
-              <motion.button
-                onClick={handleGoogleSignIn}
-                disabled={signingIn}
-                className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-btn font-semibold text-sm text-white transition-opacity disabled:opacity-60"
-                style={{ background: '#2563EB' }}
-                whileTap={{ scale: 0.98 }}
-                transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-              >
-                <GoogleIconWhite />
-                {signingIn ? 'Signing in…' : 'Sign in to Start Trip'}
-              </motion.button>
-            ) : (
-              <motion.button
-                onClick={join}
-                disabled={!name.trim() || !code.trim() || loading}
-                className="w-full py-3.5 rounded-btn font-semibold text-sm text-white transition-colors disabled:opacity-40"
-                style={{ background: loading ? '#374151' : '#111827' }}
-                whileTap={{ scale: 0.98 }}
-                transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-              >
-                {loading ? 'Locating…' : tripInfo?.exists ? 'Join Trip' : 'Start Trip'}
-              </motion.button>
-            )}
+            {/* Primary CTA */}
+            <motion.button
+              onClick={join}
+              disabled={!name.trim() || !code.trim() || loading || showNewTripNotice}
+              className="w-full py-3.5 rounded-btn font-semibold text-sm text-white transition-colors disabled:opacity-40"
+              style={{ background: loading ? '#374151' : '#111827' }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+            >
+              {loading ? 'Locating…' : tripInfo?.exists ? 'Join Trip' : 'Start Trip'}
+            </motion.button>
           </div>
+
+          {/* ── Google auth section — only when not signed in ────────── */}
+          {!user && (
+            <div className="px-6 pb-6">
+              {/* Divider */}
+              <div className="flex items-center gap-3 mb-4">
+                <div className="flex-1 h-px" style={{ background: '#F1F5F9' }} />
+                <span className="text-[11px] text-slate-400 select-none">
+                  {showNewTripNotice ? 'sign in required' : 'or'}
+                </span>
+                <div className="flex-1 h-px" style={{ background: '#F1F5F9' }} />
+              </div>
+
+              <AnimatePresence mode="wait" initial={false}>
+                {showNewTripNotice ? (
+                  /* Prominent sign-in — required for new trips */
+                  <motion.div
+                    key="required"
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    transition={{ duration: 0.18 }}
+                  >
+                    <div className="flex items-center gap-2 mb-3">
+                      <Info size={12} color="#2563EB" className="flex-shrink-0" />
+                      <span className="text-xs font-medium" style={{ color: '#1E40AF' }}>
+                        Creating a new trip requires a Google account
+                      </span>
+                    </div>
+                    <motion.button
+                      onClick={handleGoogleSignIn}
+                      disabled={signingIn}
+                      className="w-full flex items-center justify-center gap-2.5 py-3 rounded-btn font-semibold text-sm text-white transition-opacity disabled:opacity-60"
+                      style={{ background: '#2563EB' }}
+                      whileTap={{ scale: 0.98 }}
+                      transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                    >
+                      <GoogleIconWhite />
+                      {signingIn ? 'Signing in…' : 'Sign in to Start Trip'}
+                    </motion.button>
+                  </motion.div>
+                ) : (
+                  /* Optional sign-in — saves history for existing trips */
+                  <motion.div
+                    key="optional"
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    transition={{ duration: 0.18 }}
+                  >
+                    <motion.button
+                      onClick={handleGoogleSignIn}
+                      disabled={signingIn}
+                      className="w-full flex items-center justify-center gap-2.5 py-3 rounded-btn text-sm font-medium text-slate-600 transition-opacity disabled:opacity-60 hover:opacity-90"
+                      style={{ background: '#F8FAFC', border: '1px solid #E2E8F0' }}
+                      whileTap={{ scale: 0.98 }}
+                      transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                    >
+                      <GoogleIcon />
+                      {signingIn ? 'Signing in…' : 'Continue with Google'}
+                    </motion.button>
+                    <div className="flex items-center justify-center gap-4 mt-3 flex-wrap">
+                      {['Save trips', 'Sync devices', 'View history'].map(b => (
+                        <div key={b} className="flex items-center gap-1.5">
+                          <Check size={10} color="#10B981" strokeWidth={2.5} />
+                          <span className="text-[11px] text-slate-400">{b}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          )}
         </motion.div>
 
         {/* Footer */}
         <motion.p
-          className="text-xs text-center mt-5 font-sans"
+          className="text-xs text-center mt-5"
           style={{ color: '#94A3B8' }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -443,10 +461,10 @@ function GoogleIcon() {
 function GoogleIconWhite() {
   return (
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-      <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="rgba(255,255,255,0.85)"/>
-      <path d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="rgba(255,255,255,0.85)"/>
-      <path d="M3.964 10.706A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.706V4.962H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.038l3.007-2.332z" fill="rgba(255,255,255,0.85)"/>
-      <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.962L3.964 7.294C4.672 5.163 6.656 3.58 9 3.58z" fill="rgba(255,255,255,0.85)"/>
+      <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="rgba(255,255,255,0.9)"/>
+      <path d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="rgba(255,255,255,0.9)"/>
+      <path d="M3.964 10.706A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.706V4.962H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.038l3.007-2.332z" fill="rgba(255,255,255,0.9)"/>
+      <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.962L3.964 7.294C4.672 5.163 6.656 3.58 9 3.58z" fill="rgba(255,255,255,0.9)"/>
     </svg>
   )
 }
