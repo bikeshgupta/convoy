@@ -28,9 +28,10 @@ export default function ConvoyMap({ members, waypoints, onMemberClick, onMapLoad
     setMapsLoaded: s.setMapsLoaded,
   }))
 
-  const mapRef            = useRef(null)
-  const [zoom, setZoom]   = useState(15)
-  const initialCentered   = useRef(false)
+  const mapRef              = useRef(null)
+  const [zoom, setZoom]     = useState(15)
+  const [mapsError, setMapsError] = useState(null)
+  const initialCentered     = useRef(false)
 
   const handleLoad = useCallback(map => {
     mapRef.current = map
@@ -65,11 +66,27 @@ export default function ConvoyMap({ members, waypoints, onMemberClick, onMapLoad
     )
   }
 
+  if (mapsError) {
+    return (
+      <div className="w-full h-full bg-bgdeep flex items-center justify-center">
+        <div className="text-center p-8 max-w-sm">
+          <div className="text-4xl mb-4">🗺️</div>
+          <p className="font-mono text-danger text-sm mb-2">Map failed to load</p>
+          <p className="font-mono text-textmuted text-xs">
+            The Google Maps API key may not be authorized for this domain.<br />
+            Add <span className="text-accent">{window.location.hostname}</span> to your Google Cloud Console API key restrictions.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <LoadScript
       googleMapsApiKey={apiKey}
       libraries={LIBRARIES}
       loadingElement={<div className="w-full h-full bg-bgdeep" />}
+      onError={() => setMapsError(true)}
     >
       <GoogleMap
         mapContainerStyle={MAP_STYLES}
