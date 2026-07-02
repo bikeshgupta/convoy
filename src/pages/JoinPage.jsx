@@ -187,7 +187,7 @@ export default function JoinPage() {
   const [signingIn, setSigningIn] = useState(false)
   const [tripInfo,  setTripInfo]  = useState(null)
 
-  const { setMyInfo, setTripCode, setMemberId, setMyColor, setObserver, reset } = useTripStore()
+  const { setMyInfo, setTripCode, setMemberId, setMyColor, setObserver, setMyPos, reset } = useTripStore()
 
   useEffect(() => { reset() }, []) // eslint-disable-line
 
@@ -203,10 +203,11 @@ export default function JoinPage() {
     if (code.length < 6 || !db) { setTripInfo(null); return }
     const t = setTimeout(async () => {
       try {
-        const snap     = await get(ref(db, `trips/${code}/members`))
-        const count    = snap.exists() ? Object.keys(snap.val()).length : 0
-        const metaSnap = await get(ref(db, `trips/${code}/meta`))
-        setTripInfo({ exists: metaSnap.exists(), count })
+        const snap       = await get(ref(db, `trips/${code}/members`))
+        const count      = snap.exists() ? Object.keys(snap.val()).length : 0
+        const usedColors = snap.exists() ? Object.values(snap.val()).map(m => m.color).filter(Boolean) : []
+        const metaSnap   = await get(ref(db, `trips/${code}/meta`))
+        setTripInfo({ exists: metaSnap.exists(), count, usedColors })
       } catch { setTripInfo(null) }
     }, 400)
     return () => clearTimeout(t)
@@ -245,12 +246,13 @@ export default function JoinPage() {
     localStorage.setItem(STORAGE_KEYS.name,     name.trim())
     localStorage.setItem(STORAGE_KEYS.transport, transport)
 
-    const doJoin = async (observer = false) => {
+    const doJoin = async (observer = false, pos = null) => {
       setMyInfo(name.trim(), transport)
       setTripCode(upperCode)
       setMemberId(memberId)
       setMyColor(color)
       setObserver(observer)
+      if (pos) setMyPos(pos)
 
       if (db && !observer) {
         const memberRef   = ref(db, `trips/${upperCode}/members/${memberId}`)
@@ -260,7 +262,7 @@ export default function JoinPage() {
         setMyColor(memberColor)
         await set(memberRef, {
           name: name.trim(), transport, color: memberColor,
-          lat: null, lng: null, speed: 0, heading: 0, battery: 100,
+          lat: pos?.lat ?? null, lng: pos?.lng ?? null, speed: 0, heading: 0, battery: 100,
           accuracy: 0, lastSeen: serverTimestamp(), isOnline: true,
           joinedAt: isRejoin ? existing.val().joinedAt : serverTimestamp(),
         })
@@ -276,14 +278,17 @@ export default function JoinPage() {
     }
 
     try {
-      await new Promise((resolve, reject) => {
+      // 8s was too short for a cold high-accuracy GPS fix — users were being
+      // silently dumped into observer mode. Accept a fix up to 30s old so a
+      // recent cached position resolves instantly.
+      const fix = await new Promise((resolve, reject) => {
         navigator.geolocation.getCurrentPosition(resolve, reject, {
-          timeout: 8000, enableHighAccuracy: true,
+          timeout: 20000, maximumAge: 30000, enableHighAccuracy: true,
         })
       })
-      await doJoin(false)
+      await doJoin(false, { lat: fix.coords.latitude, lng: fix.coords.longitude })
     } catch {
-      toast('Joining as observer — location unavailable')
+      toast("Joining as observer — you'll start sharing once GPS is found")
       await doJoin(true)
     } finally {
       setLoading(false)

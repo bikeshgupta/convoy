@@ -31,7 +31,7 @@ export default function TripPage() {
 
   const {
     myName, memberId, myTransport, myColor, isObserver,
-    setMyPos, setActivePanel, activePanel, clearUnread, unreadMessages, reset,
+    setMyPos, setObserver, setActivePanel, activePanel, clearUnread, unreadMessages, reset,
   } = useTripStore(useShallow(s => ({
     myName:         s.myName,
     memberId:       s.memberId,
@@ -39,6 +39,7 @@ export default function TripPage() {
     myColor:        s.myColor,
     isObserver:     s.isObserver,
     setMyPos:       s.setMyPos,
+    setObserver:    s.setObserver,
     setActivePanel: s.setActivePanel,
     activePanel:    s.activePanel,
     clearUnread:    s.clearUnread,
@@ -55,6 +56,15 @@ export default function TripPage() {
   const battery = useBattery()
 
   useEffect(() => { if (position) setMyPos(position) }, [position, setMyPos])
+
+  // Observer mode is only a fallback for a slow GPS fix on the join screen —
+  // the moment a real fix arrives, start sharing instead of staying invisible
+  useEffect(() => {
+    if (position && isObserver) {
+      setObserver(false)
+      toast.success('📍 GPS locked — now sharing your location')
+    }
+  }, [position, isObserver, setObserver])
 
   const memberData = { name: myName, transport: myTransport, color: myColor, speed, heading, battery, accuracy, isOnline: true }
 
