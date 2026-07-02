@@ -4,7 +4,7 @@ import BottomSheet from '../ui/BottomSheet'
 import useTripStore from '../../store/tripStore'
 import { getWaypointIcon } from '../../utils/waypointIcons'
 
-export default function RoutePanel({ waypoints, legsRef, onClose }) {
+export default function RoutePanel({ waypoints, legs = [], onClose }) {
   const activePanel = useTripStore(s => s.activePanel)
 
   const destination = waypoints
@@ -14,8 +14,6 @@ export default function RoutePanel({ waypoints, legsRef, onClose }) {
   const restStops = waypoints
     .filter(w => w.type === 'rest')
     .sort((a, b) => (a.addedAt ?? 0) - (b.addedAt ?? 0))
-
-  const legs = legsRef.current ?? []
 
   const totalDuration = legs.reduce((s, l) => s + (l.duration?.value ?? 0), 0)
   const totalDistance = legs.reduce((s, l) => s + (l.distance?.value ?? 0), 0)

@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Flag, Clock, Users, MapPin, MessageCircle, Share2 } from 'lucide-react'
 import confetti from 'canvas-confetti'
@@ -16,7 +16,8 @@ export default function TripSummary({ members, waypointCount, messageCount, onCl
     tripStartTime: s.tripStartTime,
   })))
 
-  const duration = tripStartTime ? formatDuration(Date.now() - tripStartTime) : '—'
+  const [endedAtMs] = useState(() => Date.now())
+  const duration = tripStartTime ? formatDuration(endedAtMs - tripStartTime) : '—'
   const allMembers = [{ id: 'me', name: myName, color: myColor, transport: myTransport, isOnline: true }, ...members]
 
   useEffect(() => {

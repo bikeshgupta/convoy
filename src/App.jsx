@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { AuthProvider } from './contexts/AuthContext'
 import JoinPage from './pages/JoinPage'
+import CreateTripPage from './pages/CreateTripPage'
 import TripPage from './pages/TripPage'
 import HistoryPage from './pages/HistoryPage'
 import NotFoundPage from './pages/NotFoundPage'
@@ -29,6 +30,7 @@ export default function App() {
         <Routes>
           <Route path="/"               element={<JoinPage />} />
           <Route path="/join"           element={<JoinPage />} />
+          <Route path="/create"         element={<CreateTripPage />} />
           <Route path="/history"        element={<HistoryPage />} />
           <Route path="/trip/:tripCode" element={<TripPage />} />
           <Route path="*"               element={<NotFoundPage />} />

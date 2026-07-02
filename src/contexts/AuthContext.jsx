@@ -5,6 +5,7 @@ import {
   signInWithPopup,
   signInWithRedirect,
   getRedirectResult,
+  signInAnonymously,
   firebaseSignOut,
   onAuthStateChanged,
 } from '../firebase'
@@ -12,7 +13,7 @@ import {
 const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
-  // undefined = still loading, null = not signed in, object = signed in
+  // undefined = still loading, null = auth not configured, object = signed in
   const [user, setUser] = useState(undefined)
 
   useEffect(() => {
@@ -21,7 +22,15 @@ export function AuthProvider({ children }) {
     // Handle the result when we land back from a redirect sign-in on mobile
     getRedirectResult(auth).catch(() => {})
 
-    const unsub = onAuthStateChanged(auth, setUser)
+    const unsub = onAuthStateChanged(auth, u => {
+      if (u) {
+        setUser(u)
+      } else {
+        // Guests get an anonymous auth uid so security rules always have an
+        // identity to check — no more unauthenticated database access
+        signInAnonymously(auth).catch(() => setUser(null))
+      }
+    })
     return unsub
   }, [])
 
@@ -39,10 +48,13 @@ export function AuthProvider({ children }) {
     }
   }
 
+  // Signing out of Google drops back to a fresh anonymous session
   const signOut = () => auth && firebaseSignOut(auth)
 
+  const isGoogleUser = !!user && !user.isAnonymous
+
   return (
-    <AuthContext.Provider value={{ user, loading: user === undefined, signInWithGoogle, signOut }}>
+    <AuthContext.Provider value={{ user, isGoogleUser, loading: user === undefined, signInWithGoogle, signOut }}>
       {children}
     </AuthContext.Provider>
   )

@@ -16,8 +16,13 @@ const useTripStore = create(persist((set) => ({
   tripStartTime: null,
   isObserver:    false,
   isCreator:     false,   // true when current user created the trip
+  isSharing:     true,    // ghost mode: false pauses location sharing
+  showInvite:    false,   // opens the invite sheet (auto-set after creating)
+  tripName:      '',      // from meta
+  tripMode:      'everyone', // 'everyone' | 'hub' | 'proximity' (from meta)
+  organizerId:   '',      // meta.createdBy
   routePath:     null,    // Array<{lat,lng}> overview path from Directions API
-  mapsLoaded:    false,   // true once LoadScript fires onLoad
+  mapsLoaded:    false,   // true once the Google Maps script is ready
 
   setMyInfo:       (name, transport) => set({ myName: name, myTransport: transport }),
   setTripCode:     (code)  => set({ tripCode: code }),
@@ -31,6 +36,13 @@ const useTripStore = create(persist((set) => ({
   setObserver:     (bool)  => set({ isObserver: bool }),
   setTripStartTime:(time)  => set({ tripStartTime: time }),
   setIsCreator:    (bool)  => set({ isCreator: bool }),
+  setSharing:      (bool)  => set({ isSharing: bool }),
+  setShowInvite:   (bool)  => set({ showInvite: bool }),
+  setTripMeta:     (meta)  => set({
+    tripName:    meta?.name ?? '',
+    tripMode:    meta?.mode ?? 'everyone',
+    organizerId: meta?.createdBy ?? '',
+  }),
   setRoutePath:    (path)  => set({ routePath: path }),
   setMapsLoaded:   (bool)  => set({ mapsLoaded: bool }),
 
@@ -47,6 +59,11 @@ const useTripStore = create(persist((set) => ({
     tripStartTime:  null,
     isObserver:     false,
     isCreator:      false,
+    isSharing:      true,
+    showInvite:     false,
+    tripName:       '',
+    tripMode:       'everyone',
+    organizerId:    '',
     routePath:      null,
     mapsLoaded:     false,
   }),
@@ -61,6 +78,7 @@ const useTripStore = create(persist((set) => ({
     tripCode:      s.tripCode,
     isObserver:    s.isObserver,
     isCreator:     s.isCreator,
+    isSharing:     s.isSharing,
     tripStartTime: s.tripStartTime,
   }),
 }))

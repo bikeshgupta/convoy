@@ -7,11 +7,10 @@ export default function useChat(tripCode, myMemberId) {
   const [messages, setMessages] = useState([])
   const [loading,  setLoading]  = useState(true)
 
-  const { myName, activePanel, incrementUnread, clearUnread } = useTripStore(useShallow(s => ({
+  const { myName, activePanel, incrementUnread } = useTripStore(useShallow(s => ({
     myName:          s.myName,
     activePanel:     s.activePanel,
     incrementUnread: s.incrementUnread,
-    clearUnread:     s.clearUnread,
   })))
 
   const activePanelRef = useRef(activePanel)

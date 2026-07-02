@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Car, Bike, Activity, Footprints, Mountain, Anchor,
-  RefreshCw, Check, Info, ChevronRight, Users,
+  RefreshCw, Check, ChevronRight, Users,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import useTripStore from '../store/tripStore'
@@ -190,11 +190,19 @@ export default function JoinPage() {
     if (code.length < 6 || !db) { setTripInfo(null); return }
     const t = setTimeout(async () => {
       try {
-        const snap       = await get(ref(db, `trips/${code}/members`))
+        const metaSnap = await get(ref(db, `trips/${code}/meta`))
+        if (!metaSnap.exists()) { setTripInfo({ exists: false }); return }
+        const meta       = metaSnap.val()
+        const snap       = await get(ref(db, `trips/${code}/profiles`))
         const count      = snap.exists() ? Object.keys(snap.val()).length : 0
         const usedColors = snap.exists() ? Object.values(snap.val()).map(m => m.color).filter(Boolean) : []
-        const metaSnap   = await get(ref(db, `trips/${code}/meta`))
-        setTripInfo({ exists: metaSnap.exists(), count, usedColors })
+        setTripInfo({
+          exists: true,
+          ended:  meta.status === 'ended',
+          name:   meta.name ?? '',
+          mode:   meta.mode ?? 'everyone',
+          count, usedColors,
+        })
       } catch { setTripInfo(null) }
     }, 400)
     return () => clearTimeout(t)
@@ -223,12 +231,18 @@ export default function JoinPage() {
       toast.error('Invalid trip code format')
       return
     }
-    if (tripInfo !== null && !tripInfo.exists && !user) {
-      toast('Sign in with Google to start a new trip', { icon: null })
+    if (db && !tripInfo?.exists) {
+      toast.error('Trip not found — check the code with your organizer')
+      return
+    }
+    if (tripInfo?.ended) {
+      toast.error('This trip has ended')
       return
     }
     setLoading(true)
-    const memberId = user ? user.uid : getOrCreateGuestId()
+    // Anonymous auth gives every guest a real uid; localStorage id is only
+    // the fallback when Firebase isn't configured (demo mode)
+    const memberId = user?.uid ?? getOrCreateGuestId()
     const color    = assignColor(tripInfo?.usedColors ?? [])
     localStorage.setItem(STORAGE_KEYS.name,     name.trim())
     localStorage.setItem(STORAGE_KEYS.transport, transport)
@@ -241,18 +255,23 @@ export default function JoinPage() {
       setObserver(observer)
       if (pos) setMyPos(pos)
 
-      if (db && !observer) {
-        const memberRef   = ref(db, `trips/${upperCode}/members/${memberId}`)
-        const existing    = await get(memberRef)
+      if (db) {
+        const profileRef  = ref(db, `trips/${upperCode}/profiles/${memberId}`)
+        const existing    = await get(profileRef)
         const isRejoin    = existing.exists()
         const memberColor = isRejoin ? (existing.val()?.color ?? color) : color
         setMyColor(memberColor)
-        await set(memberRef, {
+        await set(profileRef, {
           name: name.trim(), transport, color: memberColor,
-          lat: pos?.lat ?? null, lng: pos?.lng ?? null, speed: 0, heading: 0, battery: 100,
-          accuracy: 0, lastSeen: serverTimestamp(), isOnline: true,
+          sharing: !observer, isOnline: true, lastSeen: serverTimestamp(),
           joinedAt: isRejoin ? existing.val().joinedAt : serverTimestamp(),
         })
+        if (pos && !observer) {
+          await set(ref(db, `trips/${upperCode}/positions/${memberId}`), {
+            lat: pos.lat, lng: pos.lng, speed: 0, heading: 0,
+            battery: 100, accuracy: 0, lastSeen: serverTimestamp(),
+          })
+        }
         await push(ref(db, `trips/${upperCode}/chat`), {
           text:       isRejoin ? `${name.trim()} rejoined the trip` : `${name.trim()} joined the trip`,
           senderName: 'System',
@@ -290,7 +309,6 @@ export default function JoinPage() {
     )
   }
 
-  const showNewTripNotice = tripInfo !== null && !tripInfo.exists && !user
 
   return (
     <div className="min-h-screen relative overflow-hidden">
@@ -336,7 +354,7 @@ export default function JoinPage() {
         >
           {/* Profile header — slides in when signed in */}
           <AnimatePresence initial={false}>
-            {user && (
+            {user && !user.isAnonymous && (
               <motion.div
                 key="profile"
                 initial={{ opacity: 0, height: 0 }}
@@ -467,87 +485,58 @@ export default function JoinPage() {
               </div>
             </div>
 
-            {/* ── Action buttons — single section, no divider ──────────── */}
-            <AnimatePresence mode="wait" initial={false}>
-              {showNewTripNotice ? (
-                <motion.div
-                  key="new-trip-notice"
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -6 }}
-                  transition={{ duration: 0.18 }}
-                  className="space-y-2 pt-1"
-                >
-                  <div
-                    className="flex items-center gap-2 px-3 py-2.5 rounded-input"
-                    style={{ background: '#E7F1EA' }}
-                  >
-                    <Info size={12} color="#1B6B4A" className="flex-shrink-0" />
-                    <span className="text-xs" style={{ color: '#14523A' }}>
-                      Creating a new trip requires a Google account
-                    </span>
-                  </div>
+            {/* ── Action buttons ──────────────────────────────────────── */}
+            <div className="space-y-2 pt-1">
+              {/* Primary CTA: join */}
+              <motion.button
+                onClick={join}
+                disabled={!name.trim() || !code.trim() || loading || (db && tripInfo !== null && (!tripInfo.exists || tripInfo.ended))}
+                className="w-full py-3.5 rounded-btn font-semibold text-sm text-white disabled:opacity-40"
+                style={{ background: loading ? '#5E9C82' : '#1B6B4A' }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+              >
+                {loading ? 'Locating…' : 'Join Trip'}
+              </motion.button>
+
+              {/* Organizer path */}
+              <motion.button
+                onClick={() => navigate('/create')}
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-btn text-sm font-medium text-sub hover:opacity-90 transition-opacity"
+                style={{ background: '#F4F2EC', border: '1.5px solid #E5E2D9' }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+              >
+                Organizing? Start a new trip
+                <ChevronRight size={13} strokeWidth={2.5} />
+              </motion.button>
+
+              {/* Google sign-in — secondary, only for guests */}
+              {(!user || user.isAnonymous) && (
+                <>
                   <motion.button
                     onClick={handleGoogleSignIn}
                     disabled={signingIn}
-                    className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-btn font-semibold text-sm text-white disabled:opacity-60"
-                    style={{ background: '#1B6B4A' }}
+                    className="w-full flex items-center justify-center gap-2.5 py-3 rounded-btn text-sm font-medium text-sub disabled:opacity-60 hover:opacity-90 transition-opacity"
+                    style={{ background: '#FFFFFF', border: '1.5px solid #E5E2D9' }}
                     whileTap={{ scale: 0.98 }}
                     transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                   >
-                    <GoogleIconWhite />
-                    {signingIn ? 'Signing in…' : 'Sign in to Start Trip'}
-                  </motion.button>
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="normal-actions"
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -6 }}
-                  transition={{ duration: 0.18 }}
-                  className="space-y-2 pt-1"
-                >
-                  {/* Primary CTA */}
-                  <motion.button
-                    onClick={join}
-                    disabled={!name.trim() || !code.trim() || loading || showNewTripNotice}
-                    className="w-full py-3.5 rounded-btn font-semibold text-sm text-white disabled:opacity-40"
-                    style={{ background: loading ? '#5E9C82' : '#1B6B4A' }}
-                    whileTap={{ scale: 0.98 }}
-                    transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                  >
-                    {loading ? 'Locating…' : tripInfo?.exists ? 'Join Trip' : 'Start Trip'}
+                    <GoogleIcon />
+                    {signingIn ? 'Signing in…' : 'Continue with Google'}
                   </motion.button>
 
-                  {/* Google sign-in — secondary, only when not signed in */}
-                  {!user && (
-                    <>
-                      <motion.button
-                        onClick={handleGoogleSignIn}
-                        disabled={signingIn}
-                        className="w-full flex items-center justify-center gap-2.5 py-3 rounded-btn text-sm font-medium text-sub disabled:opacity-60 hover:opacity-90 transition-opacity"
-                        style={{ background: '#F4F2EC', border: '1.5px solid #E5E2D9' }}
-                        whileTap={{ scale: 0.98 }}
-                        transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                      >
-                        <GoogleIcon />
-                        {signingIn ? 'Signing in…' : 'Continue with Google'}
-                      </motion.button>
-
-                      <div className="flex items-center justify-center gap-3 pt-0.5 flex-wrap">
-                        {['Save trips', 'Sync devices', 'View history'].map(b => (
-                          <div key={b} className="flex items-center gap-1">
-                            <Check size={10} color="#1B6B4A" strokeWidth={2.5} />
-                            <span className="text-[11px] text-mute">{b}</span>
-                          </div>
-                        ))}
+                  <div className="flex items-center justify-center gap-3 pt-0.5 flex-wrap">
+                    {['Save trips', 'Sync devices', 'View history'].map(b => (
+                      <div key={b} className="flex items-center gap-1">
+                        <Check size={10} color="#1B6B4A" strokeWidth={2.5} />
+                        <span className="text-[11px] text-mute">{b}</span>
                       </div>
-                    </>
-                  )}
-                </motion.div>
+                    ))}
+                  </div>
+                </>
               )}
-            </AnimatePresence>
+            </div>
           </div>
         </motion.div>
 
@@ -577,26 +566,23 @@ function GoogleIcon() {
   )
 }
 
-function GoogleIconWhite() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-      <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="rgba(255,255,255,0.9)"/>
-      <path d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="rgba(255,255,255,0.9)"/>
-      <path d="M3.964 10.706A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.706V4.962H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.038l3.007-2.332z" fill="rgba(255,255,255,0.9)"/>
-      <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.962L3.964 7.294C4.672 5.163 6.656 3.58 9 3.58z" fill="rgba(255,255,255,0.9)"/>
-    </svg>
-  )
+const MODE_CONSENT = {
+  hub:       'The organizer will see your live location. You\u2019ll see the organizer, route and stops.',
+  proximity: 'Members within 5 km (and the organizer) will see your live location.',
+  everyone:  'Everyone in this trip will see your live location.',
 }
 
 function getTripInfoColor(tripInfo, code) {
-  if (code.length < 6) return '#9AA292'
-  if (!tripInfo)       return '#9AA292'
-  return tripInfo.exists ? '#1B6B4A' : '#1B6B4A'
+  if (code.length < 6 || !tripInfo) return '#9AA292'
+  if (!tripInfo.exists || tripInfo.ended) return '#BE4B3B'
+  return '#1B6B4A'
 }
 
 function getTripInfoText(tripInfo, code) {
   if (code.length < 6) return 'Enter the code shared by your group'
   if (!tripInfo)       return 'Checking…'
-  if (tripInfo.exists) return `${tripInfo.count} member${tripInfo.count !== 1 ? 's' : ''} active`
-  return 'New trip will be created'
+  if (!tripInfo.exists) return 'Trip not found — check the code, or start a new trip below'
+  if (tripInfo.ended)   return `\u201C${tripInfo.name || code}\u201D has ended`
+  const title = tripInfo.name ? `\u201C${tripInfo.name}\u201D \u00B7 ` : ''
+  return `${title}${tripInfo.count} member${tripInfo.count !== 1 ? 's' : ''} \u00B7 ${MODE_CONSENT[tripInfo.mode] ?? MODE_CONSENT.everyone}`
 }

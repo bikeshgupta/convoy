@@ -18,6 +18,7 @@ import {
   signInWithPopup,
   signInWithRedirect,
   getRedirectResult,
+  signInAnonymously,
   signOut,
   onAuthStateChanged,
 } from 'firebase/auth'
@@ -92,6 +93,7 @@ export {
   signInWithPopup,
   signInWithRedirect,
   getRedirectResult,
+  signInAnonymously,
   signOut as firebaseSignOut,
   onAuthStateChanged,
 }

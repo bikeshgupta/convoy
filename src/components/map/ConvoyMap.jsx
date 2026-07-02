@@ -3,12 +3,11 @@ import { GoogleMap, LoadScript, Polyline } from '@react-google-maps/api'
 import { Map as MapIcon, Plus, Minus, LocateFixed } from 'lucide-react'
 import { useShallow } from 'zustand/shallow'
 import mapStyle from '../../utils/mapStyle'
+import { MAPS_LOADER_ID, MAPS_LIBRARIES } from '../../utils/mapsLoader'
 import useTripStore from '../../store/tripStore'
 import MyMarker from './MyMarker'
 import MemberMarker from './MemberMarker'
 import WaypointMarker from './WaypointMarker'
-
-const LIBRARIES = ['places']
 
 const MAP_OPTIONS = {
   mapTypeId:        'roadmap',
@@ -90,8 +89,9 @@ export default function ConvoyMap({ members, waypoints, onMemberClick, onMapLoad
 
   return (
     <LoadScript
+      id={MAPS_LOADER_ID}
       googleMapsApiKey={apiKey}
-      libraries={LIBRARIES}
+      libraries={MAPS_LIBRARIES}
       loadingElement={<div className="w-full h-full bg-bgdeep" />}
       onError={() => setMapsError(true)}
     >
