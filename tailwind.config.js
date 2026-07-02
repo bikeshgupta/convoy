@@ -4,47 +4,58 @@ export default {
   theme: {
     extend: {
       colors: {
-        // ── Design System (light surfaces) ─────────────────────────────
-        brand:          '#2563EB',
-        'brand-hover':  '#1D4ED8',
-        'brand-subtle': '#EFF6FF',
-        surface:        '#FFFFFF',
-        bg:             '#F8FAFC',
-        'bg-subtle':    '#F1F5F9',
-        line:           '#E2E8F0',
-        ink:            '#0F172A',
-        sub:            '#64748B',
-        mute:           '#94A3B8',
-        success:        '#10B981',
-        warning:        '#F59E0B',
-        danger:         '#EF4444',
+        // ── "Warm paper" design system ──────────────────────────────────
+        // Surfaces
+        paper:   '#FAF9F5',   // app background
+        surface: '#FFFFFF',   // cards, sheets
+        field:   '#F4F2EC',   // inputs, chips, elevated rows
+        line:    '#E5E2D9',   // hairline borders
 
-        // ── Legacy dark theme (TripPage) ────────────────────────────────
-        primary:     '#00FF88',
-        accent:      '#00D4FF',
-        bgdeep:      '#080C14',
-        bgcard:      '#0D1A2A',
-        bgelevated:  '#112236',
-        border:      '#1A3A5C',
-        textprimary: '#E0F0FF',
-        textmuted:   '#4A7A9B',
+        // Text
+        ink:  '#1F231F',
+        sub:  '#67705F',
+        mute: '#9AA292',
+
+        // Single accent — forest green (you / route / primary action)
+        brand:        '#1B6B4A',
+        'brand-deep': '#14523A',
+        'brand-soft': '#E7F1EA',
+
+        // Support
+        amber:        '#B0700F',
+        'amber-soft': '#FBF3E2',
+        success:      '#1B6B4A',
+        warning:      '#B0700F',
+        danger:       '#BE4B3B',
+        'danger-soft':'#FAECE8',
+
+        // ── Legacy aliases (existing class names, warm values) ──────────
+        primary:     '#1B6B4A',
+        accent:      '#1B6B4A',
+        bgdeep:      '#FAF9F5',
+        bgcard:      '#FFFFFF',
+        bgelevated:  '#F4F2EC',
+        border:      '#E5E2D9',
+        textprimary: '#1F231F',
+        textmuted:   '#67705F',
       },
       fontFamily: {
         sans:    ['Inter', 'system-ui', 'sans-serif'],
         body:    ['Inter', 'system-ui', 'sans-serif'],
         mono:    ['"Space Mono"', 'ui-monospace', 'monospace'],
-        display: ['"Bebas Neue"', 'cursive'],
+        display: ['Fraunces', '"Iowan Old Style"', 'Georgia', 'serif'],
       },
       borderRadius: {
-        card:  '24px',
-        input: '14px',
-        btn:   '12px',
+        card:  '20px',
+        input: '13px',
+        btn:   '13px',
         badge: '9999px',
       },
       boxShadow: {
-        sm:   '0 1px 3px rgba(0,0,0,0.05)',
-        card: '0 8px 30px rgba(0,0,0,0.08)',
-        lg:   '0 20px 40px rgba(0,0,0,0.12)',
+        sm:    '0 1px 3px rgba(31,35,31,0.06)',
+        card:  '0 8px 30px rgba(31,35,31,0.08)',
+        lg:    '0 20px 40px rgba(31,35,31,0.12)',
+        float: '0 8px 24px rgba(31,35,31,0.10)',
       },
     },
   },

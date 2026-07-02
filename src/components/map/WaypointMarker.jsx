@@ -1,26 +1,30 @@
 import { OverlayView } from '@react-google-maps/api'
+import { getWaypointIcon } from '../../utils/waypointIcons'
 
 const TYPE_STYLES = {
   destination: {
-    bg:     '#FFB800',
-    border: '#CC9400',
+    bg:     '#14523A',
+    border: '#FFFFFF',
+    icon:   '#FFFFFF',
     size:   44,
-    shadow: '0 3px 12px rgba(255,184,0,0.5)',
-    stem:   '#CC9400',
+    shadow: '0 3px 12px rgba(31,35,31,0.3)',
+    stem:   '#14523A',
   },
   rest: {
-    bg:     '#00D4FF',
-    border: '#009ABF',
+    bg:     '#B98A2E',
+    border: '#FFFFFF',
+    icon:   '#FFFFFF',
     size:   38,
-    shadow: '0 2px 8px rgba(0,212,255,0.4)',
-    stem:   '#009ABF',
+    shadow: '0 2px 8px rgba(31,35,31,0.25)',
+    stem:   '#B98A2E',
   },
   pin: {
-    bg:     '#1A3A5C',
-    border: 'rgba(255,255,255,0.4)',
+    bg:     '#FFFFFF',
+    border: '#E5E2D9',
+    icon:   '#67705F',
     size:   36,
-    shadow: '0 2px 8px rgba(0,0,0,0.4)',
-    stem:   '#4A7A9B',
+    shadow: '0 2px 8px rgba(31,35,31,0.18)',
+    stem:   '#9AA292',
   },
 }
 
@@ -29,6 +33,7 @@ export default function WaypointMarker({ waypoint }) {
 
   const style = TYPE_STYLES[waypoint.type] ?? TYPE_STYLES.pin
   const isDestination = waypoint.type === 'destination'
+  const Icon = getWaypointIcon(waypoint.icon)
 
   return (
     <OverlayView
@@ -38,8 +43,8 @@ export default function WaypointMarker({ waypoint }) {
       <div className="flex flex-col items-center" style={{ transform: 'translate(-50%,-100%)' }}>
         {isDestination && (
           <div
-            className="font-mono font-bold text-center mb-1 px-2 py-0.5 rounded-full"
-            style={{ fontSize: 9, background: '#FFB800', color: '#0F172A', whiteSpace: 'nowrap' }}
+            className="font-semibold text-center mb-1 px-2 py-0.5 rounded-full"
+            style={{ fontSize: 9, background: '#14523A', color: '#FFFFFF', whiteSpace: 'nowrap', letterSpacing: '0.04em' }}
           >
             DESTINATION
           </div>
@@ -51,20 +56,20 @@ export default function WaypointMarker({ waypoint }) {
             height:     style.size,
             background: style.bg,
             border:     `2px solid ${style.border}`,
-            fontSize:   style.size * 0.48,
             boxShadow:  style.shadow,
           }}
         >
-          {waypoint.emoji ?? '📍'}
+          <Icon size={Math.round(style.size * 0.48)} color={style.icon} strokeWidth={2} />
         </div>
         {waypoint.label && (
           <div
-            className="font-mono text-white rounded px-1.5 py-0.5 mt-0.5 whitespace-nowrap"
+            className="font-semibold rounded-full px-2 py-0.5 mt-0.5 whitespace-nowrap"
             style={{
-              background: isDestination ? 'rgba(255,184,0,0.92)' : 'rgba(13,26,42,0.9)',
-              color:      isDestination ? '#0F172A' : '#E0F0FF',
+              background: '#FFFFFF',
+              color:      '#1F231F',
               fontSize:   9,
-              border:     isDestination ? '1px solid #CC9400' : '1px solid #1A3A5C',
+              border:     '1px solid #E5E2D9',
+              boxShadow:  '0 2px 6px rgba(31,35,31,0.12)',
             }}
           >
             {waypoint.label}

@@ -1,11 +1,9 @@
 import { OverlayView } from '@react-google-maps/api'
 import PulseRing from '../ui/PulseRing'
-import { useShallow } from 'zustand/shallow'
 import useTripStore from '../../store/tripStore'
-import { getTransportEmoji } from '../../utils/transport'
 
 export default function MyMarker() {
-  const { myPos, myTransport } = useTripStore(useShallow(s => ({ myPos: s.myPos, myTransport: s.myTransport })))
+  const myPos = useTripStore(s => s.myPos)
   if (!myPos) return null
 
   return (
@@ -14,28 +12,31 @@ export default function MyMarker() {
       mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
     >
       <div className="relative flex flex-col items-center" style={{ transform: 'translate(-50%,-50%)', zIndex: 999 }}>
-        <div className="relative flex items-center justify-center" style={{ width: 60, height: 60 }}>
-          <PulseRing size={60} color="#00FF88" delay={0} />
-          <PulseRing size={60} color="#00FF88" delay={0.6} />
-          <PulseRing size={60} color="#00FF88" delay={1.2} />
+        <div className="relative flex items-center justify-center" style={{ width: 56, height: 56 }}>
+          <PulseRing size={56} color="#1B6B4A" delay={0} />
+          <PulseRing size={56} color="#1B6B4A" delay={0.8} />
           <div
-            className="relative z-10 flex items-center justify-center rounded-full border-4 border-white"
+            className="relative z-10 rounded-full"
             style={{
-              width:      48,
-              height:     48,
-              background: '#00FF88',
-              boxShadow:  '0 0 20px rgba(0,255,136,0.6)',
-              fontSize:   22,
+              width:      22,
+              height:     22,
+              background: '#1B6B4A',
+              border:     '3.5px solid #FFFFFF',
+              boxShadow:  '0 2px 8px rgba(31,35,31,0.35)',
             }}
-          >
-            {getTransportEmoji(myTransport)}
-          </div>
+          />
         </div>
         <div
-          className="font-mono font-bold text-black text-xs px-2 py-0.5 rounded-full -mt-1"
-          style={{ background: '#00FF88', fontSize: 10 }}
+          className="font-semibold px-2 py-0.5 rounded-full -mt-1"
+          style={{
+            background: '#FFFFFF',
+            border:     '1px solid #E5E2D9',
+            boxShadow:  '0 2px 6px rgba(31,35,31,0.12)',
+            color:      '#14523A',
+            fontSize:   10,
+          }}
         >
-          YOU
+          You
         </div>
       </div>
     </OverlayView>

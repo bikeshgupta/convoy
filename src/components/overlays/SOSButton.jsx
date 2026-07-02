@@ -33,14 +33,14 @@ export default function SOSButton() {
         resolved:        false,
       })
       push(chatRef, {
-        text:       `🆘 ${myName} triggered SOS!`,
+        text:       `${myName} triggered SOS!`,
         senderName: 'System',
         senderId:   'system',
         timestamp:  serverTimestamp(),
         type:       'sos',
       })
     }
-    toast.error(`🆘 SOS alert sent to all members`, { duration: 5000 })
+    toast.error(`SOS alert sent to all members`, { duration: 5000 })
   }, [tripCode, memberId, myName, myPos])
 
   const startHold = () => {
@@ -78,8 +78,8 @@ export default function SOSButton() {
         style={{
           width:      56,
           height:     56,
-          background: '#FF4D6D',
-          boxShadow:  '0 4px 20px rgba(255,77,109,0.5)',
+          background: '#BE4B3B',
+          boxShadow:  '0 4px 20px rgba(190,75,59,0.4)',
         }}
       >
         {/* Progress ring */}

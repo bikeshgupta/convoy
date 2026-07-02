@@ -39,7 +39,12 @@ export default function useTrip(tripCode, memberId, memberData) {
           setIsCreator(metaSnap.val().createdBy === memberId)
         }
 
-        await set(memberRef, { ...memberData, joinedAt: serverTimestamp() })
+        // update() instead of set(): a GPS fix pushed before init finishes
+        // must never be wiped by this write (memberData has no lat/lng)
+        const memberSnap = await get(memberRef)
+        const payload    = { ...memberData }
+        if (!memberSnap.exists()) payload.joinedAt = serverTimestamp()
+        await update(memberRef, payload)
         onDisconnect(memberRef).update({ isOnline: false, lastSeen: serverTimestamp() })
       } catch (e) {
         setError(e.message)
@@ -89,6 +94,25 @@ export default function useTrip(tripCode, memberId, memberData) {
       isOnline: true,
     }).catch(e => setError(e.message))
   }, [myPos]) // eslint-disable-line
+
+  // Heartbeat: a stationary member never triggers the myPos effect above
+  // (the geolocation hook filters out <3m jitter), so refresh lastSeen and
+  // the latest position every 20s to avoid being marked stale/offline
+  useEffect(() => {
+    if (!db || !tripCode || !memberId) return
+    const interval = setInterval(() => {
+      const { myPos: pos, isObserver: observer } = useTripStore.getState()
+      if (observer) return
+      lastPushTime.current = Date.now()
+      const memberRef = ref(db, `trips/${tripCode}/members/${memberId}`)
+      update(memberRef, {
+        ...(pos ? { lat: pos.lat, lng: pos.lng } : {}),
+        lastSeen: serverTimestamp(),
+        isOnline: true,
+      }).catch(() => {})
+    }, 20000)
+    return () => clearInterval(interval)
+  }, [tripCode, memberId])
 
   return { tripExists, isConnected, error }
 }

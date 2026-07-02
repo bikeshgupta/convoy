@@ -36,15 +36,15 @@ const TRANSPORT_ICONS = {
   boat:     Anchor,
 }
 
-// Vehicles moving along the road grid
+// Vehicles moving along the road grid — muted earth palette
 const VEHICLES = [
-  { x1: -10, y1: 155, x2: 410, y2: 155, color: '#60a5fa', duration: 9,  delay: 0   },
-  { x1: 410, y1: 325, x2: -10, y2: 325, color: '#f87171', duration: 13, delay: 2   },
-  { x1: -10, y1: 490, x2: 410, y2: 490, color: '#34d399', duration: 10, delay: 5.5 },
-  { x1:  85, y1: -10, x2:  85, y2: 810, color: '#fbbf24', duration: 14, delay: 1   },
-  { x1: 210, y1: 810, x2: 210, y2: -10, color: '#a78bfa', duration: 10, delay: 3.5 },
-  { x1: 330, y1: -10, x2: 330, y2: 810, color: '#60a5fa', duration: 12, delay: 7   },
-  { x1: -10, y1: 655, x2: 410, y2: 655, color: '#f472b6', duration: 11, delay: 4   },
+  { x1: -10, y1: 155, x2: 410, y2: 155, color: '#C05B33', duration: 9,  delay: 0   },
+  { x1: 410, y1: 325, x2: -10, y2: 325, color: '#3E7C7B', duration: 13, delay: 2   },
+  { x1: -10, y1: 490, x2: 410, y2: 490, color: '#1B6B4A', duration: 10, delay: 5.5 },
+  { x1:  85, y1: -10, x2:  85, y2: 810, color: '#B98A2E', duration: 14, delay: 1   },
+  { x1: 210, y1: 810, x2: 210, y2: -10, color: '#8E5A80', duration: 10, delay: 3.5 },
+  { x1: 330, y1: -10, x2: 330, y2: 810, color: '#3E7C7B', duration: 12, delay: 7   },
+  { x1: -10, y1: 655, x2: 410, y2: 655, color: '#C05B33', duration: 11, delay: 4   },
 ]
 
 // Pulsing location pins at road intersections
@@ -59,23 +59,12 @@ const PINS = [
 
 function AnimatedMapBackground() {
   return (
-    <div className="fixed inset-0" style={{ background: '#09151f' }}>
+    <div className="fixed inset-0" style={{ background: '#EDEAE0' }}>
       <svg
         viewBox="0 0 400 800"
         preserveAspectRatio="xMidYMid slice"
         className="absolute inset-0 w-full h-full"
       >
-        <defs>
-          <filter id="jv-glow-dot" x="-80%" y="-80%" width="260%" height="260%">
-            <feGaussianBlur stdDeviation="2.5" result="b" />
-            <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
-          </filter>
-          <filter id="jv-glow-pin" x="-120%" y="-120%" width="340%" height="340%">
-            <feGaussianBlur stdDeviation="4" result="b" />
-            <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
-          </filter>
-        </defs>
-
         {/* City blocks */}
         {[
           [10, 175, 55, 120], [100, 175, 80, 120], [220, 175, 80, 120], [340, 175, 55, 120],
@@ -83,7 +72,7 @@ function AnimatedMapBackground() {
           [10, 510, 55, 115], [100, 510, 80, 115], [220, 510, 80, 115], [340, 510, 55, 115],
           [10, 675, 55, 95],  [100, 675, 80,  95], [220, 675, 80,  95], [340, 675, 55,  95],
         ].map(([x, y, w, h], i) => (
-          <rect key={i} x={x} y={y} width={w} height={h} fill="#0e1e2e" rx={3} />
+          <rect key={i} x={x} y={y} width={w} height={h} fill="#E7E4D8" rx={3} />
         ))}
 
         {/* Road surface */}
@@ -93,7 +82,7 @@ function AnimatedMapBackground() {
           'M 85 -10 L 85 810',   'M 210 -10 L 210 810',
           'M 330 -10 L 330 810',
         ].map((d, i) => (
-          <path key={i} d={d} stroke="#122030" strokeWidth={13} fill="none" />
+          <path key={i} d={d} stroke="#FFFFFF" strokeWidth={13} fill="none" />
         ))}
 
         {/* Road edge lines */}
@@ -106,7 +95,7 @@ function AnimatedMapBackground() {
           'M 203 -10 L 203 810', 'M 217 -10 L 217 810',
           'M 323 -10 L 323 810', 'M 337 -10 L 337 810',
         ].map((d, i) => (
-          <path key={i} d={d} stroke="#18303f" strokeWidth={0.6} fill="none" />
+          <path key={i} d={d} stroke="#DEDACE" strokeWidth={0.8} fill="none" />
         ))}
 
         {/* Center lane dashes */}
@@ -116,7 +105,7 @@ function AnimatedMapBackground() {
           'M 85 -10 L 85 810',   'M 210 -10 L 210 810',
           'M 330 -10 L 330 810',
         ].map((d, i) => (
-          <path key={i} d={d} stroke="#1b3a52" strokeWidth={1} strokeDasharray="14 10" fill="none" />
+          <path key={i} d={d} stroke="#E5E0D2" strokeWidth={1} strokeDasharray="14 10" fill="none" />
         ))}
 
         {/* Moving vehicles */}
@@ -126,29 +115,27 @@ function AnimatedMapBackground() {
             initial={{ x: v.x1, y: v.y1 }}
             animate={{ x: v.x2, y: v.y2 }}
             transition={{ duration: v.duration, delay: v.delay, repeat: Infinity, ease: 'linear' }}
-            filter="url(#jv-glow-dot)"
           >
-            <circle r={3.5} fill={v.color} opacity={0.9} />
+            <circle r={3.5} fill={v.color} opacity={0.85} />
           </motion.g>
         ))}
 
         {/* Pulsing location pins */}
         {PINS.map((pin, i) => (
-          <g key={i} transform={`translate(${pin.x},${pin.y})`} filter="url(#jv-glow-pin)">
+          <g key={i} transform={`translate(${pin.x},${pin.y})`}>
             <motion.circle
               r={5}
-              fill="#3b82f6"
-              animate={{ r: [5, 22], opacity: [0.7, 0] }}
+              fill="#1B6B4A"
+              animate={{ r: [5, 22], opacity: [0.4, 0] }}
               transition={{ duration: 2.6, delay: pin.delay, repeat: Infinity, ease: 'easeOut' }}
             />
             <motion.circle
               r={5}
-              fill="#93c5fd"
-              animate={{ r: [5, 13], opacity: [0.5, 0] }}
+              fill="#5E9C82"
+              animate={{ r: [5, 13], opacity: [0.35, 0] }}
               transition={{ duration: 2.6, delay: pin.delay + 0.4, repeat: Infinity, ease: 'easeOut' }}
             />
-            <circle r={4} fill="#2563eb" />
-            <circle r={2} fill="#bfdbfe" />
+            <circle r={4.5} fill="#1B6B4A" stroke="#FFFFFF" strokeWidth={1.5} />
           </g>
         ))}
       </svg>
@@ -158,7 +145,7 @@ function AnimatedMapBackground() {
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            'radial-gradient(ellipse 85% 85% at 50% 50%, rgba(9,21,31,0.1) 0%, rgba(9,21,31,0.72) 100%)',
+            'radial-gradient(ellipse 85% 85% at 50% 50%, rgba(250,249,245,0.05) 0%, rgba(250,249,245,0.65) 100%)',
         }}
       />
       {/* Top / bottom fade */}
@@ -166,7 +153,7 @@ function AnimatedMapBackground() {
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            'linear-gradient(to bottom, rgba(9,21,31,0.55) 0%, transparent 18%, transparent 82%, rgba(9,21,31,0.55) 100%)',
+            'linear-gradient(to bottom, rgba(250,249,245,0.6) 0%, transparent 18%, transparent 82%, rgba(250,249,245,0.6) 100%)',
         }}
       />
     </div>
@@ -187,7 +174,7 @@ export default function JoinPage() {
   const [signingIn, setSigningIn] = useState(false)
   const [tripInfo,  setTripInfo]  = useState(null)
 
-  const { setMyInfo, setTripCode, setMemberId, setMyColor, setObserver, reset } = useTripStore()
+  const { setMyInfo, setTripCode, setMemberId, setMyColor, setObserver, setMyPos, reset } = useTripStore()
 
   useEffect(() => { reset() }, []) // eslint-disable-line
 
@@ -203,10 +190,11 @@ export default function JoinPage() {
     if (code.length < 6 || !db) { setTripInfo(null); return }
     const t = setTimeout(async () => {
       try {
-        const snap     = await get(ref(db, `trips/${code}/members`))
-        const count    = snap.exists() ? Object.keys(snap.val()).length : 0
-        const metaSnap = await get(ref(db, `trips/${code}/meta`))
-        setTripInfo({ exists: metaSnap.exists(), count })
+        const snap       = await get(ref(db, `trips/${code}/members`))
+        const count      = snap.exists() ? Object.keys(snap.val()).length : 0
+        const usedColors = snap.exists() ? Object.values(snap.val()).map(m => m.color).filter(Boolean) : []
+        const metaSnap   = await get(ref(db, `trips/${code}/meta`))
+        setTripInfo({ exists: metaSnap.exists(), count, usedColors })
       } catch { setTripInfo(null) }
     }, 400)
     return () => clearTimeout(t)
@@ -245,12 +233,13 @@ export default function JoinPage() {
     localStorage.setItem(STORAGE_KEYS.name,     name.trim())
     localStorage.setItem(STORAGE_KEYS.transport, transport)
 
-    const doJoin = async (observer = false) => {
+    const doJoin = async (observer = false, pos = null) => {
       setMyInfo(name.trim(), transport)
       setTripCode(upperCode)
       setMemberId(memberId)
       setMyColor(color)
       setObserver(observer)
+      if (pos) setMyPos(pos)
 
       if (db && !observer) {
         const memberRef   = ref(db, `trips/${upperCode}/members/${memberId}`)
@@ -260,7 +249,7 @@ export default function JoinPage() {
         setMyColor(memberColor)
         await set(memberRef, {
           name: name.trim(), transport, color: memberColor,
-          lat: null, lng: null, speed: 0, heading: 0, battery: 100,
+          lat: pos?.lat ?? null, lng: pos?.lng ?? null, speed: 0, heading: 0, battery: 100,
           accuracy: 0, lastSeen: serverTimestamp(), isOnline: true,
           joinedAt: isRejoin ? existing.val().joinedAt : serverTimestamp(),
         })
@@ -276,14 +265,17 @@ export default function JoinPage() {
     }
 
     try {
-      await new Promise((resolve, reject) => {
+      // 8s was too short for a cold high-accuracy GPS fix — users were being
+      // silently dumped into observer mode. Accept a fix up to 30s old so a
+      // recent cached position resolves instantly.
+      const fix = await new Promise((resolve, reject) => {
         navigator.geolocation.getCurrentPosition(resolve, reject, {
-          timeout: 8000, enableHighAccuracy: true,
+          timeout: 20000, maximumAge: 30000, enableHighAccuracy: true,
         })
       })
-      await doJoin(false)
+      await doJoin(false, { lat: fix.coords.latitude, lng: fix.coords.longitude })
     } catch {
-      toast('Joining as observer — location unavailable')
+      toast("Joining as observer — you'll start sharing once GPS is found")
       await doJoin(true)
     } finally {
       setLoading(false)
@@ -292,8 +284,8 @@ export default function JoinPage() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: '#09151f' }}>
-        <div className="text-sm animate-pulse" style={{ color: '#3b6a8a' }}>Loading…</div>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: '#FAF9F5' }}>
+        <div className="text-sm animate-pulse" style={{ color: '#9AA292' }}>Loading…</div>
       </div>
     )
   }
@@ -314,19 +306,19 @@ export default function JoinPage() {
           transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
         >
           <h1
+            className="font-display"
             style={{
-              fontSize: 36,
-              fontWeight: 800,
-              color: '#ffffff',
-              letterSpacing: '-0.03em',
+              fontSize: 40,
+              fontWeight: 600,
+              color: '#1F231F',
+              letterSpacing: '-0.02em',
               lineHeight: 1,
-              textShadow: '0 0 36px rgba(59,130,246,0.55)',
             }}
           >
-            CONVOY
+            Convoy
           </h1>
-          <p className="text-sm mt-1.5" style={{ color: '#5b8aaa' }}>
-            Trusted group travel coordination
+          <p className="text-sm mt-2" style={{ color: '#67705F' }}>
+            Your group. One map. Nobody left behind.
           </p>
         </motion.div>
 
@@ -334,8 +326,9 @@ export default function JoinPage() {
         <motion.div
           className="w-full rounded-card overflow-hidden"
           style={{
-            background:  'rgba(255,255,255,0.97)',
-            boxShadow:   '0 28px 64px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.08)',
+            background:  '#FFFFFF',
+            border:      '1px solid #E5E2D9',
+            boxShadow:   '0 20px 48px rgba(31,35,31,0.12)',
           }}
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
@@ -358,33 +351,33 @@ export default function JoinPage() {
                         src={user.photoURL}
                         alt=""
                         className="w-8 h-8 rounded-full flex-shrink-0"
-                        style={{ outline: '2px solid #E2E8F0', outlineOffset: 1 }}
+                        style={{ outline: '2px solid #E5E2D9', outlineOffset: 1 }}
                       />
                     ) : (
                       <div
                         className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
-                        style={{ background: '#EFF6FF' }}
+                        style={{ background: '#E7F1EA' }}
                       >
-                        <Users size={14} color="#2563EB" />
+                        <Users size={14} color="#1B6B4A" />
                       </div>
                     )}
                     <div className="min-w-0">
-                      <div className="text-sm font-semibold text-slate-800 leading-tight truncate">
+                      <div className="text-sm font-semibold text-ink leading-tight truncate">
                         {user.displayName ?? user.email}
                       </div>
-                      <div className="text-xs text-slate-400 mt-0.5">Signed in with Google</div>
+                      <div className="text-xs text-mute mt-0.5">Signed in with Google</div>
                     </div>
                   </div>
                   <button
                     onClick={() => navigate('/history')}
                     className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-btn transition-opacity hover:opacity-80 flex-shrink-0 ml-2"
-                    style={{ background: '#EFF6FF', color: '#2563EB' }}
+                    style={{ background: '#E7F1EA', color: '#1B6B4A' }}
                   >
                     My Trips
                     <ChevronRight size={12} strokeWidth={2.5} />
                   </button>
                 </div>
-                <div className="h-px" style={{ background: '#F1F5F9' }} />
+                <div className="h-px" style={{ background: '#F4F2EC' }} />
               </motion.div>
             )}
           </AnimatePresence>
@@ -394,23 +387,23 @@ export default function JoinPage() {
 
             {/* Name */}
             <div className="space-y-1.5">
-              <label className="block text-xs font-medium text-slate-500">Your Name</label>
+              <label className="block text-xs font-medium text-sub">Your Name</label>
               <input
                 type="text"
                 value={name}
                 onChange={e => setName(e.target.value.charAt(0).toUpperCase() + e.target.value.slice(1))}
                 maxLength={20}
                 placeholder="e.g. Priya"
-                className="w-full px-4 py-3 text-sm text-slate-800 outline-none transition-all rounded-input"
-                style={{ background: '#F8FAFC', border: '1.5px solid #E2E8F0' }}
-                onFocus={e => { e.target.style.borderColor = '#2563EB'; e.target.style.background = '#fff' }}
-                onBlur={e  => { e.target.style.borderColor = '#E2E8F0'; e.target.style.background = '#F8FAFC' }}
+                className="w-full px-4 py-3 text-sm text-ink outline-none transition-all rounded-input"
+                style={{ background: '#F4F2EC', border: '1.5px solid #E5E2D9' }}
+                onFocus={e => { e.target.style.borderColor = '#1B6B4A'; e.target.style.background = '#fff' }}
+                onBlur={e  => { e.target.style.borderColor = '#E5E2D9'; e.target.style.background = '#F4F2EC' }}
               />
             </div>
 
             {/* Trip Code */}
             <div className="space-y-1.5">
-              <label className="block text-xs font-medium text-slate-500">Trip Code</label>
+              <label className="block text-xs font-medium text-sub">Trip Code</label>
               <div className="relative">
                 <input
                   type="text"
@@ -418,20 +411,20 @@ export default function JoinPage() {
                   onChange={e => setCode(e.target.value.toUpperCase())}
                   placeholder="e.g. TREK2847"
                   maxLength={10}
-                  className="w-full px-4 py-3 pr-24 text-sm text-slate-800 outline-none transition-all rounded-input"
+                  className="w-full px-4 py-3 pr-24 text-sm text-ink outline-none transition-all rounded-input"
                   style={{
-                    background:    '#F8FAFC',
-                    border:        '1.5px solid #E2E8F0',
+                    background:    '#F4F2EC',
+                    border:        '1.5px solid #E5E2D9',
                     fontFamily:    '"Space Mono", monospace',
                     letterSpacing: '0.06em',
                   }}
-                  onFocus={e => { e.target.style.borderColor = '#2563EB'; e.target.style.background = '#fff' }}
-                  onBlur={e  => { e.target.style.borderColor = '#E2E8F0'; e.target.style.background = '#F8FAFC' }}
+                  onFocus={e => { e.target.style.borderColor = '#1B6B4A'; e.target.style.background = '#fff' }}
+                  onBlur={e  => { e.target.style.borderColor = '#E5E2D9'; e.target.style.background = '#F4F2EC' }}
                 />
                 <button
                   onClick={() => setCode(generateTripCode())}
                   className="absolute right-3.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5 text-xs font-semibold transition-opacity hover:opacity-70"
-                  style={{ color: '#2563EB' }}
+                  style={{ color: '#1B6B4A' }}
                 >
                   <RefreshCw size={11} strokeWidth={2.5} />
                   Generate
@@ -444,7 +437,7 @@ export default function JoinPage() {
 
             {/* Travel Mode */}
             <div className="space-y-2">
-              <label className="block text-xs font-medium text-slate-500">Travel Mode</label>
+              <label className="block text-xs font-medium text-sub">Travel Mode</label>
               <div className="grid grid-cols-3 gap-1.5">
                 {TRANSPORT_OPTIONS.map(opt => {
                   const Icon = TRANSPORT_ICONS[opt.id] ?? Car
@@ -455,16 +448,16 @@ export default function JoinPage() {
                       onClick={() => setTransport(opt.id)}
                       className="flex flex-col items-center gap-1.5 py-2.5 rounded-input transition-colors"
                       style={{
-                        background: sel ? '#EFF6FF' : '#F8FAFC',
-                        border:     `1.5px solid ${sel ? '#2563EB' : '#E2E8F0'}`,
+                        background: sel ? '#E7F1EA' : '#F4F2EC',
+                        border:     `1.5px solid ${sel ? '#1B6B4A' : '#E5E2D9'}`,
                       }}
                       whileTap={{ scale: 0.93 }}
                       transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                     >
-                      <Icon size={19} color={sel ? '#2563EB' : '#94A3B8'} strokeWidth={1.75} />
+                      <Icon size={19} color={sel ? '#1B6B4A' : '#9AA292'} strokeWidth={1.75} />
                       <span
                         className="text-[11px] font-medium leading-none"
-                        style={{ color: sel ? '#1E40AF' : '#64748B' }}
+                        style={{ color: sel ? '#14523A' : '#67705F' }}
                       >
                         {opt.label}
                       </span>
@@ -487,10 +480,10 @@ export default function JoinPage() {
                 >
                   <div
                     className="flex items-center gap-2 px-3 py-2.5 rounded-input"
-                    style={{ background: '#EFF6FF' }}
+                    style={{ background: '#E7F1EA' }}
                   >
-                    <Info size={12} color="#2563EB" className="flex-shrink-0" />
-                    <span className="text-xs" style={{ color: '#1E40AF' }}>
+                    <Info size={12} color="#1B6B4A" className="flex-shrink-0" />
+                    <span className="text-xs" style={{ color: '#14523A' }}>
                       Creating a new trip requires a Google account
                     </span>
                   </div>
@@ -498,7 +491,7 @@ export default function JoinPage() {
                     onClick={handleGoogleSignIn}
                     disabled={signingIn}
                     className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-btn font-semibold text-sm text-white disabled:opacity-60"
-                    style={{ background: '#2563EB' }}
+                    style={{ background: '#1B6B4A' }}
                     whileTap={{ scale: 0.98 }}
                     transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                   >
@@ -520,7 +513,7 @@ export default function JoinPage() {
                     onClick={join}
                     disabled={!name.trim() || !code.trim() || loading || showNewTripNotice}
                     className="w-full py-3.5 rounded-btn font-semibold text-sm text-white disabled:opacity-40"
-                    style={{ background: loading ? '#374151' : '#111827' }}
+                    style={{ background: loading ? '#5E9C82' : '#1B6B4A' }}
                     whileTap={{ scale: 0.98 }}
                     transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                   >
@@ -533,8 +526,8 @@ export default function JoinPage() {
                       <motion.button
                         onClick={handleGoogleSignIn}
                         disabled={signingIn}
-                        className="w-full flex items-center justify-center gap-2.5 py-3 rounded-btn text-sm font-medium text-slate-600 disabled:opacity-60 hover:opacity-90 transition-opacity"
-                        style={{ background: '#F8FAFC', border: '1.5px solid #E2E8F0' }}
+                        className="w-full flex items-center justify-center gap-2.5 py-3 rounded-btn text-sm font-medium text-sub disabled:opacity-60 hover:opacity-90 transition-opacity"
+                        style={{ background: '#F4F2EC', border: '1.5px solid #E5E2D9' }}
                         whileTap={{ scale: 0.98 }}
                         transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                       >
@@ -545,8 +538,8 @@ export default function JoinPage() {
                       <div className="flex items-center justify-center gap-3 pt-0.5 flex-wrap">
                         {['Save trips', 'Sync devices', 'View history'].map(b => (
                           <div key={b} className="flex items-center gap-1">
-                            <Check size={10} color="#10B981" strokeWidth={2.5} />
-                            <span className="text-[11px] text-slate-400">{b}</span>
+                            <Check size={10} color="#1B6B4A" strokeWidth={2.5} />
+                            <span className="text-[11px] text-mute">{b}</span>
                           </div>
                         ))}
                       </div>
@@ -561,7 +554,7 @@ export default function JoinPage() {
         {/* Footer */}
         <motion.p
           className="text-xs text-center mt-4"
-          style={{ color: '#3d6680' }}
+          style={{ color: '#87907E' }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
@@ -596,9 +589,9 @@ function GoogleIconWhite() {
 }
 
 function getTripInfoColor(tripInfo, code) {
-  if (code.length < 6) return '#94A3B8'
-  if (!tripInfo)       return '#94A3B8'
-  return tripInfo.exists ? '#10B981' : '#2563EB'
+  if (code.length < 6) return '#9AA292'
+  if (!tripInfo)       return '#9AA292'
+  return tripInfo.exists ? '#1B6B4A' : '#1B6B4A'
 }
 
 function getTripInfoText(tripInfo, code) {

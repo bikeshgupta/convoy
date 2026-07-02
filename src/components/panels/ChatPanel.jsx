@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { motion } from 'framer-motion'
+import { Send } from 'lucide-react'
 import BottomSheet from '../ui/BottomSheet'
 import { useShallow } from 'zustand/shallow'
 import useTripStore from '../../store/tripStore'
@@ -7,10 +7,8 @@ import { format, isSameDay } from 'date-fns'
 
 export default function ChatPanel({ messages, sendMessage, onClose }) {
   const [text, setText] = useState('')
-  const { myName, memberId, myColor, activePanel } = useTripStore(useShallow(s => ({
-    myName:      s.myName,
+  const { memberId, activePanel } = useTripStore(useShallow(s => ({
     memberId:    s.memberId,
-    myColor:     s.myColor,
     activePanel: s.activePanel,
   })))
   const bottomRef = useRef(null)
@@ -57,7 +55,7 @@ export default function ChatPanel({ messages, sendMessage, onClose }) {
             if (item.type === 'separator') {
               return (
                 <div key={item.id} className="text-center py-2">
-                  <span className="font-mono text-textmuted text-xs px-3 py-1 rounded-full" style={{ background: '#112236' }}>
+                  <span className="font-mono text-textmuted text-xs px-3 py-1 rounded-full" style={{ background: '#F4F2EC' }}>
                     {format(item.date, 'MMM d, yyyy')}
                   </span>
                 </div>
@@ -74,7 +72,7 @@ export default function ChatPanel({ messages, sendMessage, onClose }) {
 
             if (item.type === 'sos') {
               return (
-                <div key={item.id} className="w-full rounded-xl p-3 my-1" style={{ background: '#FF4D6D22', border: '1px solid #FF4D6D55' }}>
+                <div key={item.id} className="w-full rounded-xl p-3 my-1" style={{ background: '#FAECE8', border: '1px solid #F0D5CE' }}>
                   <span className="font-mono font-bold text-danger text-sm">{item.text}</span>
                 </div>
               )
@@ -84,15 +82,15 @@ export default function ChatPanel({ messages, sendMessage, onClose }) {
             return (
               <div key={item.id} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} gap-0.5`}>
                 {!isMe && (
-                  <span className="font-mono text-xs px-1" style={{ color: '#00D4FF', fontSize: 10 }}>
+                  <span className="font-mono text-xs px-1" style={{ color: '#3E7C7B', fontSize: 10 }}>
                     {item.senderName}
                   </span>
                 )}
                 <div
                   className="rounded-2xl px-3 py-2 max-w-[80%] break-words"
                   style={{
-                    background:  isMe ? '#00FF8818' : '#112236',
-                    border:      isMe ? '1px solid #00FF8840' : '1px solid #1A3A5C',
+                    background:  isMe ? '#E7F1EA' : '#F4F2EC',
+                    border:      isMe ? '1px solid #CBDFD2' : '1px solid #E5E2D9',
                     borderRadius: isMe ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
                   }}
                 >
@@ -110,7 +108,7 @@ export default function ChatPanel({ messages, sendMessage, onClose }) {
         {/* Input */}
         <div
           className="flex items-center gap-2 px-4 py-3 flex-shrink-0"
-          style={{ borderTop: '1px solid #1A3A5C' }}
+          style={{ borderTop: '1px solid #E5E2D9' }}
         >
           <div className="flex-1 relative">
             <input
@@ -120,7 +118,7 @@ export default function ChatPanel({ messages, sendMessage, onClose }) {
               onKeyDown={handleKey}
               placeholder="Type a message..."
               className="w-full font-body text-sm text-textprimary rounded-xl px-4 py-2.5 outline-none"
-              style={{ background: '#112236', border: '1px solid #1A3A5C', fontSize: 14 }}
+              style={{ background: '#F4F2EC', border: '1px solid #E5E2D9', fontSize: 14 }}
             />
             {text.length > 150 && (
               <span className="absolute right-3 top-1/2 -translate-y-1/2 font-mono text-xs text-textmuted">
@@ -132,9 +130,9 @@ export default function ChatPanel({ messages, sendMessage, onClose }) {
             onClick={handleSend}
             disabled={!text.trim()}
             className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 disabled:opacity-40 transition-opacity"
-            style={{ background: '#00FF88' }}
+            style={{ background: '#1B6B4A' }}
           >
-            <span className="text-black text-lg">→</span>
+            <Send size={17} color="#FFFFFF" />
           </button>
         </div>
       </div>

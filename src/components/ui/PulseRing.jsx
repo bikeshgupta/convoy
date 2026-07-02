@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 
-export default function PulseRing({ size = 60, color = '#00FF88', delay = 0 }) {
+export default function PulseRing({ size = 60, color = '#1B6B4A', delay = 0 }) {
   return (
     <motion.div
       className="absolute rounded-full pointer-events-none"
@@ -12,9 +12,9 @@ export default function PulseRing({ size = 60, color = '#00FF88', delay = 0 }) {
         top:       '50%',
         x:         '-50%',
         y:         '-50%',
-        opacity:   0.08,
+        opacity:   0.14,
       }}
-      animate={{ scale: [1, 2], opacity: [0.08, 0] }}
+      animate={{ scale: [1, 2], opacity: [0.14, 0] }}
       transition={{ duration: 2, delay, repeat: Infinity, ease: 'easeOut' }}
     />
   )

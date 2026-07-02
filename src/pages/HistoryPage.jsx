@@ -33,9 +33,9 @@ export default function HistoryPage() {
     return (
       <div
         className="min-h-screen flex items-center justify-center"
-        style={{ background: 'linear-gradient(180deg, #F8FAFC 0%, #F1F5F9 100%)' }}
+        style={{ background: '#FAF9F5' }}
       >
-        <div className="text-sm text-slate-400 animate-pulse">Loading history…</div>
+        <div className="text-sm text-mute animate-pulse">Loading history…</div>
       </div>
     )
   }
@@ -43,13 +43,13 @@ export default function HistoryPage() {
   return (
     <div
       className="min-h-screen"
-      style={{ background: 'linear-gradient(180deg, #F8FAFC 0%, #F1F5F9 100%)' }}
+      style={{ background: '#FAF9F5' }}
     >
       {/* Subtle dot grid */}
       <div
         className="fixed inset-0 pointer-events-none"
         style={{
-          backgroundImage: 'radial-gradient(circle at 1px 1px, #CBD5E1 1px, transparent 0)',
+          backgroundImage: 'radial-gradient(circle at 1px 1px, #DDD9CE 1px, transparent 0)',
           backgroundSize:  '32px 32px',
           opacity:         0.35,
         }}
@@ -66,7 +66,7 @@ export default function HistoryPage() {
         >
           <button
             onClick={() => navigate('/')}
-            className="flex items-center gap-1.5 text-sm text-slate-500 mb-5 hover:text-slate-700 transition-colors"
+            className="flex items-center gap-1.5 text-sm text-sub mb-5 hover:text-ink transition-colors"
           >
             <ArrowLeft size={15} strokeWidth={2} />
             Back
@@ -75,12 +75,12 @@ export default function HistoryPage() {
           <div className="flex items-center justify-between">
             <div>
               <h1
-                className="font-sans font-extrabold"
-                style={{ fontSize: 28, color: '#0F172A', letterSpacing: '-0.025em', lineHeight: 1.1 }}
+                className="font-display font-semibold"
+                style={{ fontSize: 28, color: '#1F231F', letterSpacing: '-0.025em', lineHeight: 1.1 }}
               >
                 My Trips
               </h1>
-              <p className="text-sm text-slate-500 mt-1">
+              <p className="text-sm text-sub mt-1">
                 {user.displayName ?? user.email}
               </p>
             </div>
@@ -99,22 +99,22 @@ export default function HistoryPage() {
         {trips.length === 0 ? (
           <motion.div
             className="w-full rounded-card p-10 text-center bg-white"
-            style={{ boxShadow: '0 4px 20px rgba(15,23,42,0.07)' }}
+            style={{ boxShadow: '0 4px 20px rgba(31,35,31,0.07)' }}
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
           >
             <div
               className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4"
-              style={{ background: '#F1F5F9' }}
+              style={{ background: '#F4F2EC' }}
             >
-              <Map size={24} color="#94A3B8" strokeWidth={1.5} />
+              <Map size={24} color="#9AA292" strokeWidth={1.5} />
             </div>
-            <p className="text-sm font-semibold text-slate-700">No trips yet</p>
-            <p className="text-xs text-slate-400 mt-1">Your completed trips will appear here</p>
+            <p className="text-sm font-semibold text-ink">No trips yet</p>
+            <p className="text-xs text-mute mt-1">Your completed trips will appear here</p>
             <button
               onClick={() => navigate('/')}
               className="mt-5 px-6 py-2.5 rounded-btn text-sm font-semibold text-white transition-opacity hover:opacity-90"
-              style={{ background: '#111827' }}
+              style={{ background: '#1B6B4A' }}
             >
               Start a Trip
             </button>
@@ -135,7 +135,7 @@ export default function HistoryPage() {
         {/* Sign out */}
         <motion.button
           onClick={async () => { await signOut(); navigate('/') }}
-          className="mt-8 text-xs text-slate-400 hover:text-red-400 transition-colors"
+          className="mt-8 text-xs text-mute hover:text-red-400 transition-colors"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
@@ -165,7 +165,7 @@ function TripCard({ trip, index, onRejoin }) {
   return (
     <motion.div
       className="rounded-[20px] p-5 bg-white"
-      style={{ boxShadow: '0 2px 12px rgba(15,23,42,0.06)', border: '1px solid #F1F5F9' }}
+      style={{ boxShadow: '0 2px 12px rgba(31,35,31,0.06)', border: '1px solid #EDEBE3' }}
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05 }}
@@ -173,17 +173,17 @@ function TripCard({ trip, index, onRejoin }) {
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <div
-            className="font-medium text-slate-800 text-[15px] tracking-[0.05em]"
+            className="font-medium text-ink text-[15px] tracking-[0.05em]"
             style={{ fontFamily: '"Space Mono", monospace' }}
           >
             {trip.tripCode}
           </div>
-          <div className="text-xs text-slate-400 mt-0.5">{date}</div>
+          <div className="text-xs text-mute mt-0.5">{date}</div>
         </div>
         <button
           onClick={onRejoin}
           className="flex-shrink-0 px-3 py-1.5 rounded-[10px] text-xs font-semibold transition-opacity hover:opacity-80"
-          style={{ background: '#F1F5F9', color: '#374151' }}
+          style={{ background: '#F4F2EC', color: '#67705F' }}
         >
           Rejoin
         </button>
@@ -192,9 +192,9 @@ function TripCard({ trip, index, onRejoin }) {
       <div className="flex gap-5 mt-4">
         {stats.map(s => (
           <div key={s.label} className="flex flex-col items-center gap-1">
-            <s.Icon size={13} color="#94A3B8" strokeWidth={1.75} />
-            <span className="text-xs font-semibold text-slate-700 tabular-nums">{s.value}</span>
-            <span className="text-[9px] text-slate-400 uppercase tracking-wide">{s.label}</span>
+            <s.Icon size={13} color="#9AA292" strokeWidth={1.75} />
+            <span className="text-xs font-semibold text-ink tabular-nums">{s.value}</span>
+            <span className="text-[9px] text-mute uppercase tracking-wide">{s.label}</span>
           </div>
         ))}
       </div>
