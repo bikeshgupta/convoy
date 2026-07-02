@@ -217,12 +217,26 @@ DRAFT ──▶ ACTIVE ──▶ ENDED (summary saved) ──▶ auto-deleted af
 - Information hierarchy: trip code, live count, route ETA, invite, leave — all crammed in a
   60 px top bar at 10 px font.
 
-### Proposed direction — "calm navigation" design language
-- **One dark, map-first theme**: deep navy surface (`#0B1220`), single accent
-  `#3B82F6` → teal `#2DD4BF` for routes; member colors stay as identity accents. The neon
-  green stays for exactly one thing: *you*.
-- Typography: Inter everywhere; mono only for the trip code. Sentence case, larger minimums
-  (12 px+).
+### Proposed direction — "warm paper" design language
+
+Deliberately *not* the dark-navy + blue + glow palette that reads as an AI-generated tech
+demo. Instead, the visual language of trusted travel products (Airbnb, Polarsteps,
+AllTrails): light, warm, editorial.
+
+- **Surfaces**: warm paper white (`#FAF9F5` page, `#FFFFFF` cards, `#F4F2EC` fields), ink
+  text `#1F231F`, hairline warm-gray borders `#E5E2D9`. Soft small shadows — no glows, no
+  gradients.
+- **One accent — forest green `#1B6B4A`**: used for exactly three things: *you* on the map,
+  the route line, and the primary action. Everything else stays neutral.
+- **Support colors**: warm amber `#B0700F` for alerts (urgency without alarm), muted red
+  `#BE4B3B` reserved for SOS only.
+- **Member identity**: muted earth tones (terracotta `#C05B33`, pine `#3E7C7B`, plum
+  `#8E5A80`, ochre `#B98A2E`) — no saturated neon, no blue.
+- **Map style**: light "printed touring map" Google style — paper land, white roads, soft
+  green parks — so pins and the route are the loudest things on screen.
+- Typography: Inter for UI; a serif (Fraunces) for the wordmark, screen titles and big stat
+  numerals — this is what shifts the feel from "dashboard" to "travel product". Mono only
+  for the trip code. Sentence case, 12 px+ minimums.
 - **Top bar → floating "trip pill"**: trip name + ETA chip + member avatars stack; tap to
   expand trip details/invite. Map gets the full bleed.
 - **Bottom sheet, not tab panels**: one persistent sheet with 3 detents (peek: member
@@ -230,7 +244,7 @@ DRAFT ──▶ ACTIVE ──▶ ENDED (summary saved) ──▶ auto-deleted af
   Maps/FindMy pattern users already know.
 - **Marker system**: teardrop pin with member color, initial/photo inside, small rotating
   direction arrow *outside* the pin, speed chip on select. Offline = desaturated + dashed
-  "last seen" ring.
+  "last seen" ring. You = a green dot with a soft pulse ring (the one animated element).
 - **Organizer badge** (crown/shield) on the admin's pin & list row — makes the role model
   visible.
 - SOS: keep the hold-to-trigger button but move it into the sheet header as a persistent
