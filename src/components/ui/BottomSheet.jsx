@@ -14,7 +14,7 @@ export default function BottomSheet({ isOpen, onClose, children, title, height =
           {/* Backdrop */}
           <motion.div
             className="fixed inset-0 z-40"
-            style={{ background: 'rgba(0,0,0,0.5)' }}
+            style={{ background: 'rgba(31,35,31,0.35)' }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -23,11 +23,12 @@ export default function BottomSheet({ isOpen, onClose, children, title, height =
 
           {/* Sheet */}
           <motion.div
-            className="fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl bg-bgcard flex flex-col"
+            className="fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl bg-surface flex flex-col"
             style={{
               maxHeight:   heightMap[height] ?? '55vh',
               paddingBottom: 'env(safe-area-inset-bottom)',
-              borderTop:   '1px solid #1A3A5C',
+              borderTop:   '1px solid #E5E2D9',
+              boxShadow:   '0 -8px 30px rgba(31,35,31,0.12)',
             }}
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
@@ -42,13 +43,13 @@ export default function BottomSheet({ isOpen, onClose, children, title, height =
           >
             {/* Drag handle */}
             <div className="flex justify-center pt-3 pb-1 flex-shrink-0">
-              <div className="w-10 h-1 rounded-full bg-textmuted/40" />
+              <div className="w-10 h-1 rounded-full" style={{ background: '#E5E2D9' }} />
             </div>
 
             {title && (
               <div
-                className="text-textmuted text-xs font-semibold tracking-wide uppercase px-5 pb-3 pt-1 border-b flex-shrink-0"
-                style={{ borderColor: '#1A3A5C', fontFamily: 'Inter, system-ui, sans-serif' }}
+                className="text-sub text-xs font-semibold tracking-wide uppercase px-5 pb-3 pt-1 border-b flex-shrink-0"
+                style={{ borderColor: '#F4F2EC', fontFamily: 'Inter, system-ui, sans-serif' }}
               >
                 {title}
               </div>

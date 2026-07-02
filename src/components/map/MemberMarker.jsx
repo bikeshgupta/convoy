@@ -1,11 +1,11 @@
 import { OverlayView } from '@react-google-maps/api'
-import { getTransportEmoji } from '../../utils/transport'
 
 export default function MemberMarker({ member, onClick }) {
-  if (!member.lat && !member.lng) return null
+  if (member.lat == null || member.lng == null) return null
 
-  const pos = { lat: member.lat, lng: member.lng }
+  const pos     = { lat: member.lat, lng: member.lng }
   const offline = !member.isOnline
+  const initial = (member.name ?? '?').charAt(0).toUpperCase()
 
   return (
     <OverlayView
@@ -14,41 +14,57 @@ export default function MemberMarker({ member, onClick }) {
     >
       <div
         className="flex flex-col items-center cursor-pointer select-none"
-        style={{ transform: 'translate(-50%,-50%)', transition: 'transform 0.5s ease' }}
+        style={{ transform: 'translate(-50%,-100%)' }}
         onClick={() => onClick?.(member)}
       >
+        {/* Teardrop pin with the member's initial (kept upright) */}
         <div
-          className="flex items-center justify-center rounded-full border-2 border-white/70"
           style={{
-            width:      40,
-            height:     40,
-            background: member.color,
-            boxShadow:  `0 0 12px ${member.color}60`,
-            transform:  `rotate(${member.heading ?? 0}deg)`,
-            filter:     offline ? 'grayscale(100%) opacity(60%)' : 'none',
-            fontSize:   20,
-            transition: 'transform 0.3s ease',
+            width:        36,
+            height:       36,
+            borderRadius: '50% 50% 50% 6px',
+            transform:    'rotate(-45deg)',
+            background:   member.color,
+            border:       '2.5px solid #FFFFFF',
+            boxShadow:    '0 3px 10px rgba(31,35,31,0.25)',
+            display:      'flex',
+            alignItems:   'center',
+            justifyContent: 'center',
+            filter:       offline ? 'grayscale(85%) opacity(65%)' : 'none',
           }}
         >
-          {getTransportEmoji(member.transport)}
+          <span
+            style={{
+              transform:  'rotate(45deg)',
+              color:      '#FFFFFF',
+              fontWeight: 700,
+              fontSize:   13,
+            }}
+          >
+            {initial}
+          </span>
         </div>
 
         <div
-          className="font-mono font-bold text-black rounded-full px-1.5 mt-0.5 whitespace-nowrap"
-          style={{ background: member.color, fontSize: 10, filter: offline ? 'grayscale(80%)' : 'none' }}
+          className="font-semibold rounded-full px-2 py-0.5 mt-1.5 whitespace-nowrap flex items-center gap-1"
+          style={{
+            background: '#FFFFFF',
+            border:     '1px solid #E5E2D9',
+            boxShadow:  '0 2px 6px rgba(31,35,31,0.12)',
+            color:      '#1F231F',
+            fontSize:   10,
+            filter:     offline ? 'grayscale(60%)' : 'none',
+          }}
         >
+          <span className="rounded-full" style={{ width: 6, height: 6, background: offline ? '#9AA292' : member.color }} />
           {member.name}
+          {offline
+            ? <span style={{ color: '#9AA292' }}>
+                · {member.lastSeen ? `${Math.round((Date.now() - member.lastSeen) / 60000)}m ago` : 'offline'}
+              </span>
+            : member.speed > 0 && <span style={{ color: '#67705F' }}>· {member.speed} km/h</span>
+          }
         </div>
-
-        {offline ? (
-          <div className="text-textmuted" style={{ fontSize: 9, fontFamily: 'Space Mono' }}>
-            {member.lastSeen ? `${Math.round((Date.now() - member.lastSeen) / 60000)}m ago` : 'offline'}
-          </div>
-        ) : member.speed > 0 ? (
-          <div className="text-textmuted" style={{ fontSize: 9, fontFamily: 'Space Mono' }}>
-            {member.speed} km/h
-          </div>
-        ) : null}
       </div>
     </OverlayView>
   )

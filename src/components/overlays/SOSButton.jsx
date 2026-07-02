@@ -78,8 +78,8 @@ export default function SOSButton() {
         style={{
           width:      56,
           height:     56,
-          background: '#FF4D6D',
-          boxShadow:  '0 4px 20px rgba(255,77,109,0.5)',
+          background: '#BE4B3B',
+          boxShadow:  '0 4px 20px rgba(190,75,59,0.4)',
         }}
       >
         {/* Progress ring */}

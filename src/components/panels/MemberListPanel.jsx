@@ -6,10 +6,10 @@ import useTripStore from '../../store/tripStore'
 import { formatDistance, getDistanceStatus, haversineDistance } from '../../utils/distance'
 
 const STATUS_COLORS = {
-  nearby:   '#10B981',
-  close:    '#F59E0B',
-  far:      '#FF8C00',
-  critical: '#EF4444',
+  nearby:   '#1B6B4A',
+  close:    '#B98A2E',
+  far:      '#B0700F',
+  critical: '#BE4B3B',
 }
 
 export default function MemberListPanel({ members, onMemberClick, onClose }) {
@@ -32,17 +32,17 @@ export default function MemberListPanel({ members, onMemberClick, onClose }) {
     >
       <div className="flex flex-col">
         {/* Me row */}
-        <div className="flex items-center gap-3 px-5 py-3.5 border-b" style={{ borderColor: '#1A3A5C' }}>
-          <Avatar color={myColor || '#00FF88'} transport={myTransport} size={44} online />
+        <div className="flex items-center gap-3 px-5 py-3.5 border-b" style={{ borderColor: '#F4F2EC' }}>
+          <Avatar color={myColor || '#1B6B4A'} transport={myTransport} size={44} online />
           <div className="flex-1 min-w-0">
-            <div className="font-sans font-semibold text-sm" style={{ color: '#00FF88' }}>
+            <div className="font-sans font-semibold text-sm" style={{ color: '#14523A' }}>
               {myName}
             </div>
             <div className="text-textmuted text-xs capitalize mt-0.5">{myTransport}</div>
           </div>
           <span
             className="text-xs px-2 py-0.5 rounded-full font-medium"
-            style={{ background: 'rgba(0,255,136,0.12)', color: '#00FF88', border: '1px solid rgba(0,255,136,0.3)' }}
+            style={{ background: '#E7F1EA', color: '#14523A', border: '1px solid #CBDFD2' }}
           >
             You
           </span>
@@ -58,7 +58,7 @@ export default function MemberListPanel({ members, onMemberClick, onClose }) {
             <button
               key={m.id}
               className="flex items-center gap-3 px-5 py-3.5 border-b text-left hover:bg-bgelevated transition-colors w-full"
-              style={{ borderColor: '#1A3A5C' }}
+              style={{ borderColor: '#F4F2EC' }}
               onClick={() => onMemberClick(m)}
             >
               <Avatar color={m.color} transport={m.transport} size={44} online={m.isOnline} />
@@ -68,16 +68,16 @@ export default function MemberListPanel({ members, onMemberClick, onClose }) {
                 {m.isOnline ? (
                   <div className="flex items-center gap-2 mt-0.5">
                     <span className="flex items-center gap-1 text-textmuted text-xs">
-                      <Zap size={9} color="#4A7A9B" />
+                      <Zap size={9} color="#9AA292" />
                       {m.speed ?? 0} km/h
                     </span>
                     <span className="flex items-center gap-1 text-textmuted text-xs">
-                      <Battery size={9} color="#4A7A9B" />
+                      <Battery size={9} color="#9AA292" />
                       {m.battery ?? 100}%
                     </span>
                   </div>
                 ) : (
-                  <div className="text-xs mt-0.5" style={{ color: '#EF4444' }}>
+                  <div className="text-xs mt-0.5" style={{ color: '#BE4B3B' }}>
                     Last seen {m.lastSeen ? `${Math.round((Date.now() - m.lastSeen) / 60000)}m ago` : 'unknown'}
                   </div>
                 )}
@@ -96,7 +96,7 @@ export default function MemberListPanel({ members, onMemberClick, onClose }) {
 
         {members.length === 0 && (
           <div className="flex flex-col items-center py-12 gap-3 text-textmuted">
-            <Users size={28} color="#4A7A9B" strokeWidth={1.5} />
+            <Users size={28} color="#9AA292" strokeWidth={1.5} />
             <span className="text-sm">Waiting for others to join…</span>
           </div>
         )}

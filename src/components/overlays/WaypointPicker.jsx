@@ -217,10 +217,10 @@ export default function WaypointPicker({ onClose, mapCenterRef }) {
           {!isCreator && (
             <div
               className="flex items-center gap-2 rounded-xl px-3 py-2"
-              style={{ background: '#FFB80015', border: '1px solid #FFB80040' }}
+              style={{ background: '#FBF3E2', border: '1px solid #EFDDB8' }}
             >
               <span className="text-sm">🔒</span>
-              <p className="font-mono text-xs" style={{ color: '#FFB800' }}>
+              <p className="font-mono text-xs" style={{ color: '#B0700F' }}>
                 Only the trip organiser can set stops & destination
               </p>
             </div>
@@ -234,8 +234,8 @@ export default function WaypointPicker({ onClose, mapCenterRef }) {
                 onClick={() => handleTypeChange(t.id)}
                 className="flex-1 flex flex-col items-center gap-1 rounded-xl py-2.5 transition-colors"
                 style={{
-                  background: type === t.id ? '#00FF8810' : '#112236',
-                  border:     type === t.id ? '1px solid #00FF8860' : '1px solid #1A3A5C',
+                  background: type === t.id ? '#E7F1EA' : '#F4F2EC',
+                  border:     type === t.id ? '1px solid #1B6B4A' : '1px solid #E5E2D9',
                 }}
               >
                 <span className="text-lg">{t.icon}</span>
@@ -261,7 +261,7 @@ export default function WaypointPicker({ onClose, mapCenterRef }) {
                   onChange={e => handleSearchInput(e.target.value)}
                   placeholder="City, landmark or address…"
                   className="w-full font-body text-sm text-textprimary rounded-xl px-4 py-3 pr-9 outline-none"
-                  style={{ background: '#112236', border: '1px solid #1A3A5C' }}
+                  style={{ background: '#F4F2EC', border: '1px solid #E5E2D9' }}
                 />
                 {searchQuery
                   ? <button onClick={clearSearch} className="absolute right-3 top-1/2 -translate-y-1/2 text-textmuted text-lg leading-none">×</button>
@@ -270,13 +270,13 @@ export default function WaypointPicker({ onClose, mapCenterRef }) {
               </div>
 
               {predictions.length > 0 && (
-                <div className="rounded-xl overflow-hidden" style={{ border: '1px solid #1A3A5C', background: '#0D1A2A' }}>
+                <div className="rounded-xl overflow-hidden" style={{ border: '1px solid #E5E2D9', background: '#FFFFFF' }}>
                   {predictions.map((p, i) => (
                     <button
                       key={p.place_id}
                       onClick={() => handleSelectPrediction(p)}
                       className="w-full text-left px-4 py-2.5 font-body text-xs text-textprimary hover:bg-white/5 transition-colors"
-                      style={{ borderTop: i > 0 ? '1px solid #1A3A5C' : 'none' }}
+                      style={{ borderTop: i > 0 ? '1px solid #E5E2D9' : 'none' }}
                     >
                       <span className="mr-2">📍</span>
                       <span className="font-bold">{p.structured_formatting?.main_text}</span>
@@ -291,9 +291,9 @@ export default function WaypointPicker({ onClose, mapCenterRef }) {
               {searching && <p className="font-mono text-textmuted text-xs text-center animate-pulse">Searching…</p>}
 
               {searchedPos && (
-                <div className="flex items-center gap-2 rounded-xl px-3 py-2" style={{ background: '#00FF8810', border: '1px solid #00FF8830' }}>
+                <div className="flex items-center gap-2 rounded-xl px-3 py-2" style={{ background: '#E7F1EA', border: '1px solid #CBDFD2' }}>
                   <span className="text-base">✅</span>
-                  <p className="font-mono text-xs flex-1 truncate" style={{ color: '#00FF88' }}>{searchedName}</p>
+                  <p className="font-mono text-xs flex-1 truncate" style={{ color: '#1B6B4A' }}>{searchedName}</p>
                   <button onClick={clearSearch} className="text-textmuted text-sm">×</button>
                 </div>
               )}
@@ -308,8 +308,8 @@ export default function WaypointPicker({ onClose, mapCenterRef }) {
                 onClick={() => setEmoji(cat.emoji)}
                 className="flex flex-col items-center gap-0.5 rounded-xl p-2 transition-colors"
                 style={{
-                  background: emoji === cat.emoji ? '#00FF8820' : '#112236',
-                  border:     emoji === cat.emoji ? '1px solid #00FF8860' : '1px solid #1A3A5C',
+                  background: emoji === cat.emoji ? '#E7F1EA' : '#F4F2EC',
+                  border:     emoji === cat.emoji ? '1px solid #1B6B4A' : '1px solid #E5E2D9',
                 }}
               >
                 <span className="text-xl">{cat.emoji}</span>
@@ -329,7 +329,7 @@ export default function WaypointPicker({ onClose, mapCenterRef }) {
                                        'Short description (optional)'
             }
             className="w-full font-body text-sm text-textprimary rounded-xl px-4 py-3 outline-none"
-            style={{ background: '#112236', border: '1px solid #1A3A5C' }}
+            style={{ background: '#F4F2EC', border: '1px solid #E5E2D9' }}
           />
 
           {/* Location source buttons */}
@@ -338,8 +338,8 @@ export default function WaypointPicker({ onClose, mapCenterRef }) {
               <button
                 onClick={() => drop('search')}
                 disabled={dropping}
-                className="py-3 rounded-xl font-mono font-bold text-sm text-black disabled:opacity-40"
-                style={{ background: '#00FF88' }}
+                className="py-3 rounded-xl font-mono font-bold text-sm text-white disabled:opacity-40"
+                style={{ background: '#1B6B4A' }}
               >
                 🔍 Searched
               </button>
@@ -348,7 +348,7 @@ export default function WaypointPicker({ onClose, mapCenterRef }) {
               onClick={() => drop('mine')}
               disabled={dropping || !myPos}
               className="py-3 rounded-xl font-mono font-bold text-sm text-textprimary disabled:opacity-40"
-              style={{ background: '#112236', border: '1px solid #1A3A5C' }}
+              style={{ background: '#F4F2EC', border: '1px solid #E5E2D9' }}
             >
               📍 My Location
             </button>
@@ -356,7 +356,7 @@ export default function WaypointPicker({ onClose, mapCenterRef }) {
               onClick={() => drop('map')}
               disabled={dropping}
               className="py-3 rounded-xl font-mono font-bold text-sm text-textprimary disabled:opacity-40"
-              style={{ background: '#112236', border: '1px solid #1A3A5C' }}
+              style={{ background: '#F4F2EC', border: '1px solid #E5E2D9' }}
             >
               🎯 Map Center
             </button>
@@ -366,8 +366,8 @@ export default function WaypointPicker({ onClose, mapCenterRef }) {
             <button
               onClick={() => drop('mine')}
               disabled={dropping || !myPos}
-              className="w-full py-3 rounded-xl font-mono font-bold text-sm uppercase tracking-widest text-black disabled:opacity-50"
-              style={{ background: '#00FF88' }}
+              className="w-full py-3 rounded-xl font-mono font-bold text-sm uppercase tracking-widest text-white disabled:opacity-50"
+              style={{ background: '#1B6B4A' }}
             >
               {dropping ? '📡 Saving...' :
                 type === 'destination' ? 'SET DESTINATION' :
@@ -385,7 +385,7 @@ export default function WaypointPicker({ onClose, mapCenterRef }) {
         >
           <div
             className="w-full max-w-sm rounded-3xl p-7 space-y-5"
-            style={{ background: '#0D1A2A', border: '2px solid #FFB800' }}
+            style={{ background: '#FFFFFF', border: '2px solid #B0700F' }}
           >
             <div className="text-center">
               <div className="text-4xl mb-2">⚠️</div>
@@ -399,15 +399,15 @@ export default function WaypointPicker({ onClose, mapCenterRef }) {
               <button
                 onClick={() => setWarnModal(null)}
                 className="flex-1 py-3 rounded-xl font-mono font-bold text-sm text-textprimary"
-                style={{ background: '#112236', border: '1px solid #1A3A5C' }}
+                style={{ background: '#F4F2EC', border: '1px solid #E5E2D9' }}
               >
                 Cancel
               </button>
               <button
                 onClick={() => executeDrop(warnModal.pos, warnModal.posSource)}
                 disabled={dropping}
-                className="flex-1 py-3 rounded-xl font-mono font-bold text-sm text-black disabled:opacity-60"
-                style={{ background: '#FFB800' }}
+                className="flex-1 py-3 rounded-xl font-mono font-bold text-sm text-white disabled:opacity-60"
+                style={{ background: '#B0700F' }}
               >
                 {dropping ? 'Adding…' : 'Add Anyway'}
               </button>

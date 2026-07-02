@@ -43,7 +43,7 @@ export default function RoutePanel({ waypoints, legsRef, onClose }) {
             {legs.length > 0 && (
               <div
                 className="flex justify-around rounded-2xl py-3"
-                style={{ background: '#00FF8810', border: '1px solid #00FF8830' }}
+                style={{ background: '#E7F1EA', border: '1px solid #CBDFD2' }}
               >
                 <div className="text-center">
                   <div className="font-mono font-bold text-primary text-lg">
@@ -76,15 +76,15 @@ export default function RoutePanel({ waypoints, legsRef, onClose }) {
                         className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 text-lg"
                         style={{
                           background: stop.type === 'destination'
-                            ? '#FFB80020'
+                            ? '#E7F1EA'
                             : stop.type === 'rest'
-                              ? '#00D4FF20'
-                              : '#00FF8820',
+                              ? '#FBF3E2'
+                              : '#E7F1EA',
                           border: stop.type === 'destination'
-                            ? '1.5px solid #FFB800'
+                            ? '1.5px solid #14523A'
                             : stop.type === 'rest'
-                              ? '1.5px solid #00D4FF'
-                              : '1.5px solid #00FF88',
+                              ? '1.5px solid #B98A2E'
+                              : '1.5px solid #1B6B4A',
                         }}
                       >
                         {stop.emoji}
@@ -92,7 +92,7 @@ export default function RoutePanel({ waypoints, legsRef, onClose }) {
                       <div className="flex-1 min-w-0">
                         <div className="font-mono text-textprimary text-sm truncate">{stop.label}</div>
                         {stop.type === 'destination' && (
-                          <div className="font-mono text-xs" style={{ color: '#FFB800' }}>FINAL DESTINATION</div>
+                          <div className="font-semibold text-xs" style={{ color: '#14523A' }}>Final destination</div>
                         )}
                         {stop.isOrigin && (
                           <div className="font-mono text-xs text-textmuted">Starting point</div>
@@ -104,13 +104,13 @@ export default function RoutePanel({ waypoints, legsRef, onClose }) {
                     {leg && i < stops.length - 1 && (
                       <div className="flex items-center gap-3 pl-4 py-1">
                         <div className="flex flex-col items-center gap-0.5">
-                          <div style={{ width: 2, height: 6, background: '#1A3A5C' }} />
-                          <div style={{ width: 2, height: 6, background: '#1A3A5C' }} />
-                          <div style={{ width: 2, height: 6, background: '#1A3A5C' }} />
+                          <div style={{ width: 2, height: 6, background: '#E5E2D9' }} />
+                          <div style={{ width: 2, height: 6, background: '#E5E2D9' }} />
+                          <div style={{ width: 2, height: 6, background: '#E5E2D9' }} />
                         </div>
                         <div
                           className="flex items-center gap-3 rounded-lg px-3 py-1.5"
-                          style={{ background: '#112236', border: '1px solid #1A3A5C' }}
+                          style={{ background: '#F4F2EC', border: '1px solid #E5E2D9' }}
                         >
                           <span className="font-mono text-textmuted text-xs">
                             ⏱ {leg.duration?.text ?? '—'}
@@ -123,7 +123,7 @@ export default function RoutePanel({ waypoints, legsRef, onClose }) {
                     )}
                     {!leg && i < stops.length - 1 && (
                       <div className="pl-[18px] py-1">
-                        <div style={{ width: 2, height: 20, background: '#1A3A5C' }} />
+                        <div style={{ width: 2, height: 20, background: '#E5E2D9' }} />
                       </div>
                     )}
                   </div>

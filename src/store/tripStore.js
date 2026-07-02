@@ -1,6 +1,9 @@
 import { create } from 'zustand'
+import { persist, createJSONStorage } from 'zustand/middleware'
 
-const useTripStore = create((set) => ({
+// Persisted to sessionStorage so a mid-trip page refresh doesn't bounce the
+// user back to the join screen to re-enter their name and code
+const useTripStore = create(persist((set) => ({
   myName:        '',
   myTransport:   'car',
   myColor:       '',
@@ -46,6 +49,19 @@ const useTripStore = create((set) => ({
     isCreator:      false,
     routePath:      null,
     mapsLoaded:     false,
+  }),
+}), {
+  name:    'convoy-trip',
+  storage: createJSONStorage(() => sessionStorage),
+  partialize: s => ({
+    myName:        s.myName,
+    myTransport:   s.myTransport,
+    myColor:       s.myColor,
+    memberId:      s.memberId,
+    tripCode:      s.tripCode,
+    isObserver:    s.isObserver,
+    isCreator:     s.isCreator,
+    tripStartTime: s.tripStartTime,
   }),
 }))
 

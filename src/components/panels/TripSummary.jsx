@@ -19,7 +19,7 @@ export default function TripSummary({ members, waypointCount, messageCount, onCl
   const allMembers = [{ id: 'me', name: myName, color: myColor, transport: myTransport, isOnline: true }, ...members]
 
   useEffect(() => {
-    confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 }, colors: ['#00FF88','#00D4FF','#FFB800'] })
+    confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 }, colors: ['#1B6B4A','#3E7C7B','#B0700F'] })
   }, [])
 
   const share = async () => {
@@ -38,7 +38,7 @@ export default function TripSummary({ members, waypointCount, messageCount, onCl
       animate={{ opacity: 1 }}
     >
       <div className="text-5xl mb-2">🏁</div>
-      <h1 className="font-display text-5xl text-primary tracking-widest mb-1">TRIP COMPLETE</h1>
+      <h1 className="font-display font-semibold text-4xl text-ink mb-1">Trip complete</h1>
       <p className="font-mono text-textmuted text-sm mb-8">
         {tripCode} · {duration}
       </p>
@@ -54,7 +54,7 @@ export default function TripSummary({ members, waypointCount, messageCount, onCl
           <div
             key={s.label}
             className="rounded-2xl p-4 flex flex-col items-center gap-1"
-            style={{ background: '#0D1A2A', border: '1px solid #1A3A5C' }}
+            style={{ background: '#FFFFFF', border: '1px solid #E5E2D9' }}
           >
             <span className="text-2xl">{s.icon}</span>
             <span className="font-mono font-bold text-xl text-textprimary">{s.value}</span>
@@ -77,14 +77,14 @@ export default function TripSummary({ members, waypointCount, messageCount, onCl
         <button
           onClick={share}
           className="w-full py-3 rounded-2xl font-mono font-bold text-sm uppercase tracking-widest"
-          style={{ background: '#00D4FF22', border: '1px solid #00D4FF55', color: '#00D4FF' }}
+          style={{ background: '#E3EDED', border: '1px solid #BCD2D2', color: '#3E7C7B' }}
         >
           📤 Share Summary
         </button>
         <button
           onClick={onClose}
-          className="w-full py-3 rounded-2xl font-mono font-bold text-sm uppercase tracking-widest text-black"
-          style={{ background: '#00FF88' }}
+          className="w-full py-3 rounded-2xl font-mono font-bold text-sm uppercase tracking-widest text-white"
+          style={{ background: '#1B6B4A' }}
         >
           Back to Home
         </button>

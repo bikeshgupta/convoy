@@ -39,7 +39,7 @@ export default function MemberDetailCard({ member, onClose }) {
     <AnimatePresence>
       <motion.div
         className="fixed inset-x-0 bottom-0 z-[150] rounded-t-3xl p-5"
-        style={{ background: '#0D1A2A', border: '1px solid #1A3A5C', borderBottom: 'none' }}
+        style={{ background: '#FFFFFF', border: '1px solid #E5E2D9', borderBottom: 'none' }}
         initial={{ y: '100%' }}
         animate={{ y: 0 }}
         exit={{ y: '100%' }}
@@ -63,7 +63,7 @@ export default function MemberDetailCard({ member, onClose }) {
         {!member.isOnline && (
           <div
             className="rounded-xl px-3 py-2 mb-4 font-mono text-sm text-warning"
-            style={{ background: '#FFB80015', border: '1px solid #FFB80040' }}
+            style={{ background: '#FBF3E2', border: '1px solid #EFDDB8' }}
           >
             ⚠️ Last seen {formatRelativeTime(member.lastSeen)} · Location may be outdated
           </div>
@@ -79,7 +79,7 @@ export default function MemberDetailCard({ member, onClose }) {
             { icon: '📶', label: 'Accuracy',  value: member.accuracy ? `±${member.accuracy}m` : '—' },
             { icon: '🕐', label: 'Last seen', value: formatRelativeTime(member.lastSeen) },
           ].map(s => (
-            <div key={s.label} className="rounded-xl p-3" style={{ background: '#112236', border: '1px solid #1A3A5C' }}>
+            <div key={s.label} className="rounded-xl p-3" style={{ background: '#F4F2EC', border: '1px solid #E5E2D9' }}>
               <div className="font-mono text-textmuted text-xs mb-1">{s.icon} {s.label}</div>
               <div className="font-mono text-textprimary text-sm font-bold">{s.value}</div>
             </div>
@@ -91,14 +91,14 @@ export default function MemberDetailCard({ member, onClose }) {
           <button
             onClick={navigate}
             className="flex-1 py-3 rounded-xl font-mono font-bold text-sm uppercase tracking-wide"
-            style={{ background: '#00D4FF22', border: '1px solid #00D4FF55', color: '#00D4FF' }}
+            style={{ background: '#E3EDED', border: '1px solid #BCD2D2', color: '#3E7C7B' }}
           >
             🗺️ Navigate
           </button>
           <button
             onClick={ping}
             className="flex-1 py-3 rounded-xl font-mono font-bold text-sm uppercase tracking-wide text-textprimary"
-            style={{ background: '#112236', border: '1px solid #1A3A5C' }}
+            style={{ background: '#F4F2EC', border: '1px solid #E5E2D9' }}
           >
             👋 Ping
           </button>

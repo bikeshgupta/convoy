@@ -7,17 +7,16 @@ export default function useBattery() {
     if (!navigator.getBattery) return
 
     let batteryObj = null
-
-    const update = b => setBattery(Math.round(b.level * 100))
+    const onChange = () => { if (batteryObj) setBattery(Math.round(batteryObj.level * 100)) }
 
     navigator.getBattery().then(b => {
       batteryObj = b
-      update(b)
-      b.addEventListener('levelchange', () => update(b))
+      onChange()
+      b.addEventListener('levelchange', onChange)
     }).catch(() => {})
 
     return () => {
-      if (batteryObj) batteryObj.removeEventListener('levelchange', () => {})
+      batteryObj?.removeEventListener('levelchange', onChange)
     }
   }, [])
 

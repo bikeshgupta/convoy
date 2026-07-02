@@ -1,11 +1,11 @@
-import { useRef, useState, useCallback } from 'react'
+import { useRef, useState, useCallback, useEffect } from 'react'
 import { GoogleMap, LoadScript, Polyline } from '@react-google-maps/api'
+import { useShallow } from 'zustand/shallow'
 import mapStyle from '../../utils/mapStyle'
 import useTripStore from '../../store/tripStore'
 import MyMarker from './MyMarker'
 import MemberMarker from './MemberMarker'
 import WaypointMarker from './WaypointMarker'
-import RoutePolyline from './RoutePolyline'
 
 const LIBRARIES = ['places']
 
@@ -22,11 +22,11 @@ const MAP_STYLES = { width: '100%', height: '100%' }
 
 export default function ConvoyMap({ members, waypoints, onMemberClick, onMapLoad }) {
   const apiKey  = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
-  const { myPos, routePath, setMapsLoaded } = useTripStore(s => ({
+  const { myPos, routePath, setMapsLoaded } = useTripStore(useShallow(s => ({
     myPos:         s.myPos,
     routePath:     s.routePath,
     setMapsLoaded: s.setMapsLoaded,
-  }))
+  })))
 
   const mapRef              = useRef(null)
   const [zoom, setZoom]     = useState(15)
@@ -43,9 +43,15 @@ export default function ConvoyMap({ members, waypoints, onMemberClick, onMapLoad
     if (mapRef.current) setZoom(mapRef.current.getZoom())
   }, [])
 
-  if (myPos && !initialCentered.current) {
-    initialCentered.current = true
-  }
+  // Center on the first GPS fix only — a controlled `center` prop would
+  // re-center on every position tick and fight the user's panning
+  useEffect(() => {
+    if (myPos && !initialCentered.current && mapRef.current) {
+      initialCentered.current = true
+      mapRef.current.panTo(myPos)
+      mapRef.current.setZoom(16)
+    }
+  }, [myPos])
 
   const centerOnMe = () => {
     if (mapRef.current && myPos) { mapRef.current.panTo(myPos); mapRef.current.setZoom(16) }
@@ -90,7 +96,7 @@ export default function ConvoyMap({ members, waypoints, onMemberClick, onMapLoad
     >
       <GoogleMap
         mapContainerStyle={MAP_STYLES}
-        center={myPos ?? { lat: 20.5937, lng: 78.9629 }}
+        center={{ lat: 20.5937, lng: 78.9629 }}
         zoom={zoom}
         options={{ ...MAP_OPTIONS, styles: mapStyle }}
         onLoad={handleLoad}
@@ -101,8 +107,8 @@ export default function ConvoyMap({ members, waypoints, onMemberClick, onMapLoad
           <Polyline
             path={routePath}
             options={{
-              strokeColor:   '#00D4FF',
-              strokeOpacity: 0.75,
+              strokeColor:   '#1B6B4A',
+              strokeOpacity: 0.85,
               strokeWeight:  5,
               geodesic:      true,
             }}
@@ -117,11 +123,6 @@ export default function ConvoyMap({ members, waypoints, onMemberClick, onMapLoad
 
         {waypoints.map(w => (
           <WaypointMarker key={w.id} waypoint={w} />
-        ))}
-
-        {/* Dashed lines from me to each member (subtle) */}
-        {members.map(m => (
-          <RoutePolyline key={m.id} from={myPos} to={m} color={m.color} />
         ))}
       </GoogleMap>
 

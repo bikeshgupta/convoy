@@ -1,7 +1,8 @@
-import { useEffect, useState, useRef, useCallback } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { motion, AnimatePresence } from 'framer-motion'
+import { Map as MapIcon, Users, MessageCircle, Route as RouteIcon, MapPin } from 'lucide-react'
 import { useShallow } from 'zustand/shallow'
 import useTripStore from '../store/tripStore'
 import { useAuth } from '../contexts/AuthContext'
@@ -11,6 +12,7 @@ import useMembers from '../hooks/useMembers'
 import useChat from '../hooks/useChat'
 import useBattery from '../hooks/useBattery'
 import useRoute from '../hooks/useRoute'
+import useWakeLock from '../hooks/useWakeLock'
 import ConvoyMap from '../components/map/ConvoyMap'
 import TopBar from '../components/overlays/TopBar'
 import SOSButton from '../components/overlays/SOSButton'
@@ -21,7 +23,7 @@ import ChatPanel from '../components/panels/ChatPanel'
 import RoutePanel from '../components/panels/RoutePanel'
 import TripSummary from '../components/panels/TripSummary'
 import LoadingScreen from '../components/ui/LoadingScreen'
-import { db, ref, onValue, off, push, set, serverTimestamp } from '../firebase'
+import { db, ref, onValue, off, set } from '../firebase'
 import { getTransportEmoji } from '../utils/transport'
 
 export default function TripPage() {
@@ -54,6 +56,7 @@ export default function TripPage() {
 
   const { position, speed, heading, accuracy } = useGeolocation()
   const battery = useBattery()
+  useWakeLock()
 
   useEffect(() => { if (position) setMyPos(position) }, [position, setMyPos])
 
@@ -89,14 +92,16 @@ export default function TripPage() {
     return () => off(wpRef, 'value', unsub)
   }, [codeParam])
 
-  // Subscribe to SOS
+  // Subscribe to SOS — only alerts from the last 10 minutes, so a stale
+  // unresolved SOS doesn't re-fire the alarm for everyone who (re)joins
   useEffect(() => {
     if (!db || !codeParam) return
     const sosRef = ref(db, `trips/${codeParam}/sos`)
     const unsub  = onValue(sosRef, snap => {
       if (!snap.exists()) return
+      const cutoff = Date.now() - 10 * 60 * 1000
       const active = Object.entries(snap.val())
-        .find(([, v]) => !v.resolved && v.triggeredBy !== memberId)
+        .find(([, v]) => !v.resolved && v.triggeredBy !== memberId && (v.timestamp ?? 0) > cutoff)
       if (active) {
         setSosAlert({ id: active[0], ...active[1] })
         navigator.vibrate?.([300, 100, 300, 100, 300])
@@ -106,10 +111,14 @@ export default function TripPage() {
     return () => off(sosRef, 'value', unsub)
   }, [codeParam, memberId])
 
-  // Battery warning (once on mount)
+  // Battery warning — fires once when the level first drops below 20%
+  const batteryWarned = useRef(false)
   useEffect(() => {
-    if (battery < 20) toast(`🔋 Battery below 20%`, { icon: '⚠️' })
-  }, []) // eslint-disable-line
+    if (battery < 20 && !batteryWarned.current) {
+      batteryWarned.current = true
+      toast(`Battery below 20%`, { icon: '🔋' })
+    }
+  }, [battery])
 
   // New member notifications
   const prevMemberCount = useRef(0)
@@ -122,10 +131,16 @@ export default function TripPage() {
     prevMemberCount.current = members.length
   }, [members.length]) // eslint-disable-line
 
-  // Connection banner
+  // Connection banner — silent until the first successful connection,
+  // otherwise it cries "connection lost" on every fresh page load
+  const wasConnected = useRef(false)
   useEffect(() => {
-    if (!isConnected && db) toast('📡 Connection lost — last known positions shown', { icon: '⚠️' })
-    else if (isConnected) toast.success('🔄 Reconnected', { duration: 2000 })
+    if (isConnected) {
+      if (wasConnected.current) toast.success('Reconnected', { duration: 2000 })
+      wasConnected.current = true
+    } else if (wasConnected.current && db) {
+      toast('Connection lost — last known positions shown', { icon: '📡' })
+    }
   }, [isConnected])
 
   // Planned route via Google Directions
@@ -166,11 +181,11 @@ export default function TripPage() {
   if (!myName || !memberId) return <LoadingScreen message="Redirecting" />
 
   const TABS = [
-    { id: null,        icon: '🗺️', label: 'Map' },
-    { id: 'members',   icon: '👥', label: 'Group' },
-    { id: 'chat',      icon: '💬', label: 'Chat',  badge: unreadMessages },
-    { id: 'route',     icon: '🧭', label: 'Route'  },
-    { id: 'waypoints', icon: '📍', label: 'Pin'   },
+    { id: null,        Icon: MapIcon,       label: 'Map' },
+    { id: 'members',   Icon: Users,         label: 'Group' },
+    { id: 'chat',      Icon: MessageCircle, label: 'Chat',  badge: unreadMessages },
+    { id: 'route',     Icon: RouteIcon,     label: 'Route'  },
+    { id: 'waypoints', Icon: MapPin,        label: 'Pin'   },
   ]
 
   return (
@@ -188,7 +203,7 @@ export default function TripPage() {
       />
 
       <TopBar
-        onlineCount={onlineCount + 1}
+        onlineCount={onlineCount + (isObserver ? 0 : 1)}
         onLeave={handleLeave}
         routeDuration={routeDuration}
         onRoutePress={() => handlePanelChange('route')}
@@ -196,17 +211,17 @@ export default function TripPage() {
 
       {/* Observer banner */}
       {isObserver && (
-        <div className="fixed top-16 left-0 right-0 z-[90] text-center py-2 font-mono text-xs"
-          style={{ background: '#FFB80020', color: '#FFB800', borderBottom: '1px solid #FFB80040' }}>
-          👁️ Observer mode — others can't see you
+        <div className="fixed top-16 left-0 right-0 z-[90] text-center py-2 text-xs font-medium"
+          style={{ background: '#FBF3E2', color: '#B0700F', borderBottom: '1px solid #EFDDB8' }}>
+          Waiting for GPS — others can't see you yet
         </div>
       )}
 
       {/* Connection banner */}
       {!isConnected && db && (
-        <div className="fixed top-16 left-0 right-0 z-[90] text-center py-2 font-mono text-xs"
-          style={{ background: '#FF4D6D20', color: '#FF4D6D', borderBottom: '1px solid #FF4D6D40' }}>
-          📡 Reconnecting...
+        <div className="fixed top-16 left-0 right-0 z-[90] text-center py-2 text-xs font-medium"
+          style={{ background: '#FAECE8', color: '#BE4B3B', borderBottom: '1px solid #F0D5CE' }}>
+          Reconnecting…
         </div>
       )}
 
@@ -217,32 +232,36 @@ export default function TripPage() {
         className="fixed bottom-0 left-0 right-0 z-[100] flex items-center justify-around px-1"
         style={{
           height:        64,
-          background:    '#0D1A2A',
-          borderTop:     '1px solid #1A3A5C',
-          borderRadius:  '24px 24px 0 0',
+          background:    '#FFFFFF',
+          borderTop:     '1px solid #E5E2D9',
+          borderRadius:  '20px 20px 0 0',
+          boxShadow:     '0 -8px 30px rgba(31,35,31,0.08)',
           paddingBottom: 'env(safe-area-inset-bottom)',
         }}
       >
-        {TABS.map(tab => (
-          <button
-            key={String(tab.id)}
-            onClick={() => handlePanelChange(tab.id)}
-            className="flex flex-col items-center gap-0.5 relative px-3 py-1 min-w-0"
-          >
-            <span className="text-xl">{tab.icon}</span>
-            <span className="font-mono uppercase" style={{ fontSize: 9, color: activePanel === tab.id ? '#00FF88' : '#4A7A9B' }}>
-              {tab.label}
-            </span>
-            {(tab.badge ?? 0) > 0 && (
-              <span
-                className="absolute -top-0.5 right-0.5 font-mono font-bold rounded-full text-white flex items-center justify-center"
-                style={{ background: '#FF4D6D', fontSize: 9, minWidth: 15, height: 15, padding: '0 3px' }}
-              >
-                {tab.badge}
+        {TABS.map(tab => {
+          const active = activePanel === tab.id
+          return (
+            <button
+              key={String(tab.id)}
+              onClick={() => handlePanelChange(tab.id)}
+              className="flex flex-col items-center gap-1 relative px-3 py-1 min-w-0"
+            >
+              <tab.Icon size={20} strokeWidth={active ? 2.25 : 1.75} color={active ? '#1B6B4A' : '#9AA292'} />
+              <span className="font-medium" style={{ fontSize: 10, color: active ? '#1B6B4A' : '#9AA292' }}>
+                {tab.label}
               </span>
-            )}
-          </button>
-        ))}
+              {(tab.badge ?? 0) > 0 && (
+                <span
+                  className="absolute -top-0.5 right-0.5 font-bold rounded-full text-white flex items-center justify-center"
+                  style={{ background: '#BE4B3B', fontSize: 9, minWidth: 15, height: 15, padding: '0 3px' }}
+                >
+                  {tab.badge}
+                </span>
+              )}
+            </button>
+          )
+        })}
       </div>
 
       {/* Panels */}
@@ -258,23 +277,23 @@ export default function TripPage() {
         {sosAlert && (
           <motion.div
             className="fixed inset-0 z-[200] flex items-center justify-center p-6"
-            style={{ background: 'rgba(255,77,109,0.15)', backdropFilter: 'blur(4px)' }}
+            style={{ background: 'rgba(31,35,31,0.45)', backdropFilter: 'blur(4px)' }}
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
           >
-            <div className="rounded-3xl p-8 max-w-sm w-full text-center" style={{ background: '#0D1A2A', border: '2px solid #FF4D6D' }}>
+            <div className="rounded-3xl p-8 max-w-sm w-full text-center" style={{ background: '#FFFFFF', border: '2px solid #BE4B3B', boxShadow: '0 20px 48px rgba(31,35,31,0.25)' }}>
               <div className="text-5xl mb-3">🆘</div>
-              <h2 className="font-display text-3xl text-danger mb-2">{sosAlert.triggeredByName} needs help!</h2>
-              <p className="font-mono text-textmuted text-sm mb-6">SOS alert triggered</p>
+              <h2 className="font-display text-2xl text-danger mb-2">{sosAlert.triggeredByName} needs help</h2>
+              <p className="text-sub text-sm mb-6">SOS alert triggered — their location is pinned</p>
               <div className="flex gap-3">
                 <button
                   onClick={() => window.open(`https://maps.google.com/maps?daddr=${sosAlert.lat},${sosAlert.lng}`, '_blank')}
-                  className="flex-1 py-3 rounded-xl font-mono font-bold text-danger text-sm uppercase"
-                  style={{ background: '#FF4D6D22', border: '1px solid #FF4D6D55' }}
-                >🗺️ Navigate</button>
+                  className="flex-1 py-3 rounded-xl font-semibold text-white text-sm"
+                  style={{ background: '#BE4B3B' }}
+                >Navigate</button>
                 <button
                   onClick={() => setSosAlert(null)}
-                  className="flex-1 py-3 rounded-xl font-mono font-bold text-textprimary text-sm uppercase"
-                  style={{ background: '#112236', border: '1px solid #1A3A5C' }}
+                  className="flex-1 py-3 rounded-xl font-semibold text-ink text-sm"
+                  style={{ background: '#F4F2EC', border: '1px solid #E5E2D9' }}
                 >Dismiss</button>
               </div>
             </div>

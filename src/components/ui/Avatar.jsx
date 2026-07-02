@@ -15,8 +15,8 @@ export default function Avatar({ color, transport, size = 40, online = true }) {
         width:      size,
         height:     size,
         background: color,
-        boxShadow:  `0 0 ${Math.round(size / 3)}px ${color}50`,
-        border:     '2px solid rgba(255,255,255,0.25)',
+        boxShadow:  '0 2px 8px rgba(31,35,31,0.15)',
+        border:     '2px solid #FFFFFF',
         filter:     online ? 'none' : 'grayscale(1) opacity(0.55)',
       }}
     >
