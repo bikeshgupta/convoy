@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { motion } from 'framer-motion'
+import { Send } from 'lucide-react'
 import BottomSheet from '../ui/BottomSheet'
 import { useShallow } from 'zustand/shallow'
 import useTripStore from '../../store/tripStore'
@@ -7,10 +7,8 @@ import { format, isSameDay } from 'date-fns'
 
 export default function ChatPanel({ messages, sendMessage, onClose }) {
   const [text, setText] = useState('')
-  const { myName, memberId, myColor, activePanel } = useTripStore(useShallow(s => ({
-    myName:      s.myName,
+  const { memberId, activePanel } = useTripStore(useShallow(s => ({
     memberId:    s.memberId,
-    myColor:     s.myColor,
     activePanel: s.activePanel,
   })))
   const bottomRef = useRef(null)
@@ -134,7 +132,7 @@ export default function ChatPanel({ messages, sendMessage, onClose }) {
             className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 disabled:opacity-40 transition-opacity"
             style={{ background: '#1B6B4A' }}
           >
-            <span className="text-white text-lg">→</span>
+            <Send size={17} color="#FFFFFF" />
           </button>
         </div>
       </div>

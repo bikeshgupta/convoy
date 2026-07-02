@@ -24,6 +24,10 @@ Shipped:
       and white info chips, restyled waypoint pins
 - [x] All panels restyled (members, chat, route, waypoint picker, member detail,
       trip summary, history, 404, loading screen)
+- [x] Every emoji replaced with Lucide icons: waypoint categories now store an
+      `icon` id resolved via `src/utils/waypointIcons.js`, detail-card stats,
+      trip summary, SOS overlay, map controls, toasts and chat send button all
+      use line icons; emoji removed from system chat messages and share text
 - [x] Muted earth-tone member palette + transport colors (no blue, no neon)
 - [x] PWA manifest + theme-color updated
 - **Minor fixes:**

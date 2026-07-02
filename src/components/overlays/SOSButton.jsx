@@ -33,14 +33,14 @@ export default function SOSButton() {
         resolved:        false,
       })
       push(chatRef, {
-        text:       `🆘 ${myName} triggered SOS!`,
+        text:       `${myName} triggered SOS!`,
         senderName: 'System',
         senderId:   'system',
         timestamp:  serverTimestamp(),
         type:       'sos',
       })
     }
-    toast.error(`🆘 SOS alert sent to all members`, { duration: 5000 })
+    toast.error(`SOS alert sent to all members`, { duration: 5000 })
   }, [tripCode, memberId, myName, myPos])
 
   const startHold = () => {

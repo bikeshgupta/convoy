@@ -1,9 +1,11 @@
 import { OverlayView } from '@react-google-maps/api'
+import { getWaypointIcon } from '../../utils/waypointIcons'
 
 const TYPE_STYLES = {
   destination: {
     bg:     '#14523A',
     border: '#FFFFFF',
+    icon:   '#FFFFFF',
     size:   44,
     shadow: '0 3px 12px rgba(31,35,31,0.3)',
     stem:   '#14523A',
@@ -11,6 +13,7 @@ const TYPE_STYLES = {
   rest: {
     bg:     '#B98A2E',
     border: '#FFFFFF',
+    icon:   '#FFFFFF',
     size:   38,
     shadow: '0 2px 8px rgba(31,35,31,0.25)',
     stem:   '#B98A2E',
@@ -18,6 +21,7 @@ const TYPE_STYLES = {
   pin: {
     bg:     '#FFFFFF',
     border: '#E5E2D9',
+    icon:   '#67705F',
     size:   36,
     shadow: '0 2px 8px rgba(31,35,31,0.18)',
     stem:   '#9AA292',
@@ -29,6 +33,7 @@ export default function WaypointMarker({ waypoint }) {
 
   const style = TYPE_STYLES[waypoint.type] ?? TYPE_STYLES.pin
   const isDestination = waypoint.type === 'destination'
+  const Icon = getWaypointIcon(waypoint.icon)
 
   return (
     <OverlayView
@@ -51,11 +56,10 @@ export default function WaypointMarker({ waypoint }) {
             height:     style.size,
             background: style.bg,
             border:     `2px solid ${style.border}`,
-            fontSize:   style.size * 0.48,
             boxShadow:  style.shadow,
           }}
         >
-          {waypoint.emoji ?? '📍'}
+          <Icon size={Math.round(style.size * 0.48)} color={style.icon} strokeWidth={2} />
         </div>
         {waypoint.label && (
           <div

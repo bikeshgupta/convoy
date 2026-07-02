@@ -1,6 +1,8 @@
 import { motion } from 'framer-motion'
+import { Navigation, Compass, Clock, Ruler } from 'lucide-react'
 import BottomSheet from '../ui/BottomSheet'
 import useTripStore from '../../store/tripStore'
+import { getWaypointIcon } from '../../utils/waypointIcons'
 
 export default function RoutePanel({ waypoints, legsRef, onClose }) {
   const activePanel = useTripStore(s => s.activePanel)
@@ -19,10 +21,10 @@ export default function RoutePanel({ waypoints, legsRef, onClose }) {
   const totalDistance = legs.reduce((s, l) => s + (l.distance?.value ?? 0), 0)
 
   const stops = [
-    { emoji: '📍', label: 'Your location', isOrigin: true },
-    ...restStops.map(w => ({ emoji: w.emoji ?? '☕', label: w.label || 'Rest Stop', type: 'rest' })),
+    { Icon: Navigation, label: 'Your location', isOrigin: true },
+    ...restStops.map(w => ({ Icon: getWaypointIcon(w.icon ?? 'break'), label: w.label || 'Rest Stop', type: 'rest' })),
     destination
-      ? { emoji: destination.emoji ?? '🏁', label: destination.label || 'Destination', type: 'destination' }
+      ? { Icon: getWaypointIcon(destination.icon ?? 'finish'), label: destination.label || 'Destination', type: 'destination' }
       : null,
   ].filter(Boolean)
 
@@ -30,11 +32,11 @@ export default function RoutePanel({ waypoints, legsRef, onClose }) {
     <BottomSheet isOpen={activePanel === 'route'} onClose={onClose} title="TRIP ROUTE" height="auto">
       <div className="p-5 space-y-4">
         {!destination ? (
-          <div className="text-center py-6 space-y-2">
-            <div className="text-4xl">🧭</div>
-            <p className="font-mono text-textmuted text-sm">No destination set</p>
-            <p className="font-mono text-textmuted text-xs opacity-60">
-              Add a 🏁 Destination waypoint to see the planned route
+          <div className="flex flex-col items-center text-center py-6 space-y-2">
+            <Compass size={32} color="#9AA292" strokeWidth={1.5} />
+            <p className="text-sub text-sm">No destination set</p>
+            <p className="text-mute text-xs">
+              Add a destination waypoint to see the planned route
             </p>
           </div>
         ) : (
@@ -73,7 +75,7 @@ export default function RoutePanel({ waypoints, legsRef, onClose }) {
                       transition={{ delay: i * 0.05 }}
                     >
                       <div
-                        className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 text-lg"
+                        className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
                         style={{
                           background: stop.type === 'destination'
                             ? '#E7F1EA'
@@ -87,7 +89,11 @@ export default function RoutePanel({ waypoints, legsRef, onClose }) {
                               : '1.5px solid #1B6B4A',
                         }}
                       >
-                        {stop.emoji}
+                        <stop.Icon
+                          size={16}
+                          strokeWidth={2}
+                          color={stop.type === 'destination' ? '#14523A' : stop.type === 'rest' ? '#B98A2E' : '#1B6B4A'}
+                        />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="font-mono text-textprimary text-sm truncate">{stop.label}</div>
@@ -112,11 +118,11 @@ export default function RoutePanel({ waypoints, legsRef, onClose }) {
                           className="flex items-center gap-3 rounded-lg px-3 py-1.5"
                           style={{ background: '#F4F2EC', border: '1px solid #E5E2D9' }}
                         >
-                          <span className="font-mono text-textmuted text-xs">
-                            ⏱ {leg.duration?.text ?? '—'}
+                          <span className="flex items-center gap-1 text-sub text-xs">
+                            <Clock size={11} color="#9AA292" /> {leg.duration?.text ?? '—'}
                           </span>
-                          <span className="font-mono text-textmuted text-xs">
-                            📏 {leg.distance?.text ?? '—'}
+                          <span className="flex items-center gap-1 text-sub text-xs">
+                            <Ruler size={11} color="#9AA292" /> {leg.distance?.text ?? '—'}
                           </span>
                         </div>
                       </div>

@@ -1,4 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion'
+import {
+  MapPin, Compass, Zap, Battery, Signal, Clock, Map, Hand, AlertTriangle, X,
+} from 'lucide-react'
 import Avatar from '../ui/Avatar'
 import { useShallow } from 'zustand/shallow'
 import useTripStore from '../../store/tripStore'
@@ -7,10 +10,9 @@ import { formatRelativeTime } from '../../utils/time'
 import { db, ref, push, serverTimestamp } from '../../firebase'
 
 export default function MemberDetailCard({ member, onClose }) {
-  const { myPos, myName, memberId, tripCode } = useTripStore(useShallow(s => ({
+  const { myPos, myName, tripCode } = useTripStore(useShallow(s => ({
     myPos:    s.myPos,
     myName:   s.myName,
-    memberId: s.memberId,
     tripCode: s.tripCode,
   })))
 
@@ -27,7 +29,7 @@ export default function MemberDetailCard({ member, onClose }) {
   const ping = () => {
     if (!db || !tripCode) return
     push(ref(db, `trips/${tripCode}/chat`), {
-      text:       `👋 ${myName} pinged ${member.name}`,
+      text:       `${myName} pinged ${member.name}`,
       senderName: 'System',
       senderId:   'system',
       timestamp:  serverTimestamp(),
@@ -54,34 +56,37 @@ export default function MemberDetailCard({ member, onClose }) {
         <div className="flex items-center gap-4 mb-5">
           <Avatar color={member.color} transport={member.transport} size={64} online={member.isOnline} />
           <div>
-            <div className="font-mono font-bold text-xl text-textprimary">{member.name}</div>
-            <div className="font-mono text-textmuted text-sm capitalize">{member.transport}</div>
+            <div className="font-bold text-xl text-textprimary">{member.name}</div>
+            <div className="text-textmuted text-sm capitalize">{member.transport}</div>
           </div>
-          <button onClick={onClose} className="ml-auto text-textmuted text-xl">✕</button>
+          <button onClick={onClose} className="ml-auto text-textmuted"><X size={20} /></button>
         </div>
 
         {!member.isOnline && (
           <div
-            className="rounded-xl px-3 py-2 mb-4 font-mono text-sm text-warning"
+            className="flex items-center gap-2 rounded-xl px-3 py-2 mb-4 text-sm text-warning"
             style={{ background: '#FBF3E2', border: '1px solid #EFDDB8' }}
           >
-            ⚠️ Last seen {formatRelativeTime(member.lastSeen)} · Location may be outdated
+            <AlertTriangle size={14} color="#B0700F" className="flex-shrink-0" />
+            Last seen {formatRelativeTime(member.lastSeen)} · Location may be outdated
           </div>
         )}
 
         {/* Stats grid */}
         <div className="grid grid-cols-2 gap-3 mb-5">
           {[
-            { icon: '📍', label: 'Distance',  value: dist != null ? formatDistance(dist) : '—' },
-            { icon: '🧭', label: 'Direction', value: `${dirLabel} (${bearing != null ? Math.round(bearing) : '—'}°)` },
-            { icon: '⚡', label: 'Speed',     value: `${member.speed ?? 0} km/h` },
-            { icon: '🔋', label: 'Battery',   value: `${member.battery ?? 100}%` },
-            { icon: '📶', label: 'Accuracy',  value: member.accuracy ? `±${member.accuracy}m` : '—' },
-            { icon: '🕐', label: 'Last seen', value: formatRelativeTime(member.lastSeen) },
+            { Icon: MapPin,  label: 'Distance',  value: dist != null ? formatDistance(dist) : '—' },
+            { Icon: Compass, label: 'Direction', value: `${dirLabel} (${bearing != null ? Math.round(bearing) : '—'}°)` },
+            { Icon: Zap,     label: 'Speed',     value: `${member.speed ?? 0} km/h` },
+            { Icon: Battery, label: 'Battery',   value: `${member.battery ?? 100}%` },
+            { Icon: Signal,  label: 'Accuracy',  value: member.accuracy ? `±${member.accuracy}m` : '—' },
+            { Icon: Clock,   label: 'Last seen', value: formatRelativeTime(member.lastSeen) },
           ].map(s => (
             <div key={s.label} className="rounded-xl p-3" style={{ background: '#F4F2EC', border: '1px solid #E5E2D9' }}>
-              <div className="font-mono text-textmuted text-xs mb-1">{s.icon} {s.label}</div>
-              <div className="font-mono text-textprimary text-sm font-bold">{s.value}</div>
+              <div className="flex items-center gap-1.5 text-textmuted text-xs mb-1">
+                <s.Icon size={11} color="#9AA292" /> {s.label}
+              </div>
+              <div className="text-textprimary text-sm font-bold">{s.value}</div>
             </div>
           ))}
         </div>
@@ -90,17 +95,17 @@ export default function MemberDetailCard({ member, onClose }) {
         <div className="flex gap-3">
           <button
             onClick={navigate}
-            className="flex-1 py-3 rounded-xl font-mono font-bold text-sm uppercase tracking-wide"
-            style={{ background: '#E3EDED', border: '1px solid #BCD2D2', color: '#3E7C7B' }}
+            className="flex-1 py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-1.5"
+            style={{ background: '#E7F1EA', border: '1px solid #CBDFD2', color: '#14523A' }}
           >
-            🗺️ Navigate
+            <Map size={15} /> Navigate
           </button>
           <button
             onClick={ping}
-            className="flex-1 py-3 rounded-xl font-mono font-bold text-sm uppercase tracking-wide text-textprimary"
+            className="flex-1 py-3 rounded-xl font-semibold text-sm text-textprimary flex items-center justify-center gap-1.5"
             style={{ background: '#F4F2EC', border: '1px solid #E5E2D9' }}
           >
-            👋 Ping
+            <Hand size={15} color="#67705F" /> Ping
           </button>
         </div>
       </motion.div>

@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Map as MapIcon, Users, MessageCircle, Route as RouteIcon, MapPin } from 'lucide-react'
+import { Map as MapIcon, Users, MessageCircle, Route as RouteIcon, MapPin, Siren, BatteryLow, WifiOff } from 'lucide-react'
 import { useShallow } from 'zustand/shallow'
 import useTripStore from '../store/tripStore'
 import { useAuth } from '../contexts/AuthContext'
@@ -24,7 +24,6 @@ import RoutePanel from '../components/panels/RoutePanel'
 import TripSummary from '../components/panels/TripSummary'
 import LoadingScreen from '../components/ui/LoadingScreen'
 import { db, ref, onValue, off, set } from '../firebase'
-import { getTransportEmoji } from '../utils/transport'
 
 export default function TripPage() {
   const { tripCode: codeParam } = useParams()
@@ -65,7 +64,7 @@ export default function TripPage() {
   useEffect(() => {
     if (position && isObserver) {
       setObserver(false)
-      toast.success('📍 GPS locked — now sharing your location')
+      toast.success('GPS locked — now sharing your location')
     }
   }, [position, isObserver, setObserver])
 
@@ -105,7 +104,7 @@ export default function TripPage() {
       if (active) {
         setSosAlert({ id: active[0], ...active[1] })
         navigator.vibrate?.([300, 100, 300, 100, 300])
-        toast.error(`🆘 SOS from ${active[1].triggeredByName}!`, { duration: 10000 })
+        toast.error(`SOS from ${active[1].triggeredByName}!`, { duration: 10000 })
       }
     })
     return () => off(sosRef, 'value', unsub)
@@ -116,7 +115,7 @@ export default function TripPage() {
   useEffect(() => {
     if (battery < 20 && !batteryWarned.current) {
       batteryWarned.current = true
-      toast(`Battery below 20%`, { icon: '🔋' })
+      toast(`Battery below 20%`, { icon: <BatteryLow size={16} color="#B0700F" /> })
     }
   }, [battery])
 
@@ -125,7 +124,7 @@ export default function TripPage() {
   useEffect(() => {
     if (members.length > prevMemberCount.current && prevMemberCount.current > 0) {
       const newest = members[members.length - 1]
-      toast.success(`${getTransportEmoji(newest?.transport)} ${newest?.name} joined the trip`)
+      toast.success(`${newest?.name} joined the trip`)
       navigator.vibrate?.([50])
     }
     prevMemberCount.current = members.length
@@ -139,7 +138,7 @@ export default function TripPage() {
       if (wasConnected.current) toast.success('Reconnected', { duration: 2000 })
       wasConnected.current = true
     } else if (wasConnected.current && db) {
-      toast('Connection lost — last known positions shown', { icon: '📡' })
+      toast('Connection lost — last known positions shown', { icon: <WifiOff size={16} color="#BE4B3B" /> })
     }
   }, [isConnected])
 
@@ -281,7 +280,11 @@ export default function TripPage() {
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
           >
             <div className="rounded-3xl p-8 max-w-sm w-full text-center" style={{ background: '#FFFFFF', border: '2px solid #BE4B3B', boxShadow: '0 20px 48px rgba(31,35,31,0.25)' }}>
-              <div className="text-5xl mb-3">🆘</div>
+              <div className="flex justify-center mb-4">
+                <div className="w-14 h-14 rounded-full flex items-center justify-center" style={{ background: '#FAECE8' }}>
+                  <Siren size={28} color="#BE4B3B" />
+                </div>
+              </div>
               <h2 className="font-display text-2xl text-danger mb-2">{sosAlert.triggeredByName} needs help</h2>
               <p className="text-sub text-sm mb-6">SOS alert triggered — their location is pinned</p>
               <div className="flex gap-3">
