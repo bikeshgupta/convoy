@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Convoy — UI Redesign Concepts</title>
+<style>
+  :root {
+    --bg:      #0B1220;
+    --surface: #111A2E;
+    --raised:  #18233B;
+    --line:    #24314E;
+    --ink:     #E8EEF9;
+    --sub:     #8FA3C4;
+    --mute:    #56688C;
+    --accent:  #3B82F6;
+    --teal:    #2DD4BF;
+    --me:      #34D399;
+    --danger:  #F87171;
+    --warn:    #FBBF24;
+    --m1: #F97316; --m2: #38BDF8; --m3: #E879F9; --m4: #FACC15;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #060A14;
+    color: var(--ink);
+    font-family: Inter, -apple-system, "Segoe UI", Roboto, sans-serif;
+    padding: 48px 24px 80px;
+  }
+  .intro { max-width: 960px; margin: 0 auto 48px; }
+  .intro h1 { font-size: 28px; letter-spacing: -0.02em; }
+  .intro h1 span { color: var(--teal); }
+  .intro p { color: var(--sub); margin-top: 10px; font-size: 15px; line-height: 1.6; max-width: 640px; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 48px 32px;
+    max-width: 1240px;
+    margin: 0 auto;
+    justify-items: center;
+  }
+  .concept { width: 320px; }
+  .concept h2 { font-size: 15px; margin-bottom: 4px; }
+  .concept h2 em { color: var(--teal); font-style: normal; font-size: 11px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 4px; }
+  .concept .note { color: var(--sub); font-size: 12.5px; line-height: 1.55; margin: 8px 2px 16px; }
+
+  .phone {
+    width: 320px; height: 660px;
+    background: var(--bg);
+    border-radius: 40px;
+    border: 6px solid #1C2740;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+    display: flex; flex-direction: column;
+  }
+  .notch { position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+    width: 110px; height: 24px; background: #060A14; border-radius: 14px; z-index: 50; }
+
+  /* ---------- shared bits ---------- */
+  .btn { display: flex; align-items: center; justify-content: center; gap: 8px;
+    border-radius: 14px; font-weight: 600; font-size: 14px; padding: 15px; border: none;
+    font-family: inherit; }
+  .btn-primary { background: var(--accent); color: #fff; box-shadow: 0 8px 24px rgba(59,130,246,0.35); }
+  .btn-ghost { background: var(--raised); color: var(--ink); border: 1px solid var(--line); }
+  .chip { display: inline-flex; align-items: center; gap: 5px; border-radius: 999px;
+    font-size: 11px; font-weight: 600; padding: 5px 10px; }
+  .avatar { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center;
+    justify-content: center; font-weight: 700; font-size: 13px; color: #0B1220;
+    border: 2px solid var(--bg); flex-shrink: 0; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+
+  /* ---------- fake map ---------- */
+  .map { position: absolute; inset: 0; background: #0D1526; }
+  .map svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .pin { position: absolute; transform: translate(-50%, -100%); z-index: 10; text-align: center; }
+  .pin .head { width: 34px; height: 34px; border-radius: 50% 50% 50% 6px; transform: rotate(-45deg);
+    display: flex; align-items: center; justify-content: center; border: 2.5px solid #fff;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.5); margin: 0 auto; }
+  .pin .head span { transform: rotate(45deg); font-weight: 700; font-size: 12px; color: #0B1220; }
+  .pin .tag { margin-top: 7px; background: rgba(11,18,32,0.9); border: 1px solid var(--line);
+    color: var(--ink); font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 999px;
+    white-space: nowrap; backdrop-filter: blur(4px); }
+  .me-marker { position: absolute; transform: translate(-50%,-50%); z-index: 12; }
+  .me-marker .ring { position: absolute; inset: -14px; border-radius: 50%;
+    background: rgba(52,211,153,0.15); border: 1.5px solid rgba(52,211,153,0.4);
+    animation: pulse 2.4s ease-out infinite; }
+  @keyframes pulse { 0% { transform: scale(0.7); opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
+  .me-marker .core { width: 22px; height: 22px; border-radius: 50%; background: var(--me);
+    border: 3px solid #fff; box-shadow: 0 0 16px rgba(52,211,153,0.8); position: relative; }
+  .me-marker .arrow { position: absolute; top: -13px; left: 50%; transform: translateX(-50%);
+    width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent;
+    border-bottom: 9px solid var(--me); filter: drop-shadow(0 0 4px rgba(52,211,153,0.8)); }
+
+  /* ---------- trip pill / top ---------- */
+  .trip-pill { position: absolute; top: 46px; left: 14px; right: 14px; z-index: 20;
+    background: rgba(17,26,46,0.92); backdrop-filter: blur(12px);
+    border: 1px solid var(--line); border-radius: 18px; padding: 12px 14px;
+    display: flex; align-items: center; gap: 10px; box-shadow: 0 12px 32px rgba(0,0,0,0.45); }
+  .trip-pill .title { font-size: 13.5px; font-weight: 700; }
+  .trip-pill .meta { font-size: 10.5px; color: var(--sub); margin-top: 2px; }
+  .avatars { display: flex; margin-left: auto; }
+  .avatars .avatar { width: 26px; height: 26px; font-size: 10px; margin-left: -8px; }
+
+  /* ---------- bottom sheet ---------- */
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; z-index: 30;
+    background: var(--surface); border-radius: 22px 22px 0 0;
+    border-top: 1px solid var(--line); box-shadow: 0 -16px 40px rgba(0,0,0,0.5); }
+  .grab { width: 36px; height: 4px; border-radius: 2px; background: var(--line); margin: 10px auto 0; }
+  .row { display: flex; align-items: center; gap: 11px; padding: 11px 16px;
+    border-bottom: 1px solid rgba(36,49,78,0.5); }
+  .row .name { font-size: 13px; font-weight: 600; }
+  .row .sub { font-size: 10.5px; color: var(--sub); margin-top: 2px; }
+  .row .right { margin-left: auto; text-align: right; }
+
+  .screen-pad { position: relative; z-index: 5; padding: 60px 22px 24px; display: flex;
+    flex-direction: column; height: 100%; }
+  .label { font-size: 11px; font-weight: 600; color: var(--sub); letter-spacing: 0.02em;
+    margin-bottom: 7px; display: block; }
+  .input { background: var(--raised); border: 1.5px solid var(--line); border-radius: 14px;
+    color: var(--ink); font-size: 14px; padding: 14px; width: 100%; font-family: inherit; }
+  .caption { font-size: 10px; color: var(--mute); }
+</style>
+</head>
+<body>
+
+<div class="intro">
+  <h1>Convoy <span>· UI redesign concepts</span></h1>
+  <p>One design language across the app: deep-navy “calm navigation” theme, Inter typography,
+  real icons instead of emoji, map-first layout with a single bottom sheet. Green is reserved
+  for <b>you</b>, teal for the <b>route</b>, member colors for <b>identity</b>. Six key screens below.</p>
+</div>
+
+<div class="grid">
+
+<!-- ═══════════ 1. HOME ═══════════ -->
+<div class="concept">
+  <h2><em>Screen 1</em>Home — start or join</h2>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="map">
+      <svg viewBox="0 0 320 660">
+        <path d="M0 140 H320 M0 330 H320 M0 520 H320 M90 0 V660 M230 0 V660" stroke="#16213A" stroke-width="12"/>
+        <path d="M-20 480 C 80 430, 120 300, 230 250 S 340 120, 360 80" stroke="#2DD4BF" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.85"/>
+      </svg>
+      <div style="position:absolute;inset:0;background:linear-gradient(to bottom, rgba(11,18,32,0.35), rgba(11,18,32,0.93) 62%)"></div>
+    </div>
+    <div class="screen-pad" style="justify-content:flex-end">
+      <div style="margin-bottom:auto; padding-top:120px; text-align:center;">
+        <div style="font-size:34px; font-weight:800; letter-spacing:-0.03em;">Convoy</div>
+        <div style="color:var(--sub); font-size:13.5px; margin-top:6px;">Your group. One map. Nobody left behind.</div>
+      </div>
+      <button class="btn btn-primary" style="margin-bottom:10px;">⊕&nbsp; Start a trip</button>
+      <button class="btn btn-ghost" style="margin-bottom:14px;">Join with code or QR</button>
+      <div style="display:flex; justify-content:center; gap:14px;">
+        <span class="caption">🔒 You control who sees you</span>
+        <span class="caption">✓ No app install needed</span>
+      </div>
+    </div>
+  </div>
+  <p class="note">Two intents, two buttons — no form dump on first load. The privacy promise is
+  on screen one because trust is the product. Name/transport are asked contextually later.</p>
+</div>
+
+<!-- ═══════════ 2. TRIP SETUP ═══════════ -->
+<div class="concept">
+  <h2><em>Screen 2</em>Create trip — destination-first</h2>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="screen-pad" style="padding-top:64px;">
+      <div style="font-size:20px; font-weight:700; margin-bottom:20px;">New trip</div>
+
+      <span class="label">Trip name</span>
+      <div class="input" style="margin-bottom:16px;">Goa Ride 🏍</div>
+
+      <span class="label">Destination</span>
+      <div class="input" style="margin-bottom:8px; display:flex; align-items:center; gap:8px;">
+        <span style="color:var(--teal)">◉</span> Palolem Beach, Goa
+      </div>
+      <div style="display:flex; gap:6px; margin-bottom:18px;">
+        <span class="chip" style="background:var(--raised); color:var(--sub);">+ Rest stop</span>
+        <span class="chip" style="background:var(--raised); color:var(--sub);">+ Meet point</span>
+      </div>
+
+      <span class="label">Who sees whom</span>
+      <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:22px;">
+        <div style="background:var(--raised); border:1.5px solid var(--accent); border-radius:14px; padding:12px 14px;">
+          <div style="font-size:13px; font-weight:600;">👑 Hub &amp; spoke <span class="chip" style="background:rgba(59,130,246,0.18); color:#93C5FD; margin-left:6px;">Selected</span></div>
+          <div class="caption" style="margin-top:3px;">You see everyone. Members see you, the route &amp; stops.</div>
+        </div>
+        <div style="background:var(--raised); border:1.5px solid var(--line); border-radius:14px; padding:12px 14px;">
+          <div style="font-size:13px; font-weight:600;">👥 Everyone sees everyone</div>
+          <div class="caption" style="margin-top:3px;">Full visibility — best for small friend groups.</div>
+        </div>
+        <div style="background:var(--raised); border:1.5px solid var(--line); border-radius:14px; padding:12px 14px;">
+          <div style="font-size:13px; font-weight:600;">📡 Proximity only</div>
+          <div class="caption" style="margin-top:3px;">Members see riders within 5 km of them.</div>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" style="margin-top:auto;">Create &amp; get invite code</button>
+    </div>
+  </div>
+  <p class="note">The permission model you described — organizer sees all, joiners see the
+  destination and mid-points — becomes an explicit, organizer-chosen <b>sharing mode</b>.
+  Destination is set at creation, not buried in a pin menu after joining.</p>
+</div>
+
+<!-- ═══════════ 3. INVITE ═══════════ -->
+<div class="concept">
+  <h2><em>Screen 3</em>Invite — code, QR, consent preview</h2>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="screen-pad" style="padding-top:64px; text-align:center;">
+      <div style="font-size:18px; font-weight:700;">You’re live 🎉</div>
+      <div style="color:var(--sub); font-size:12.5px; margin-top:4px; margin-bottom:22px;">Bring your convoy in</div>
+
+      <div style="background:var(--surface); border:1px solid var(--line); border-radius:20px; padding:22px;">
+        <div style="font-family:ui-monospace,monospace; font-size:30px; font-weight:700; letter-spacing:0.18em; color:var(--teal);">TREK-2847</div>
+        <div style="width:132px; height:132px; margin:18px auto; border-radius:12px; background:
+          repeating-conic-gradient(#E8EEF9 0% 25%, #0B1220 0% 50%) 0 0 / 16px 16px; border:8px solid #E8EEF9;"></div>
+        <div class="caption">Scan to join · works on any phone browser</div>
+      </div>
+
+      <div style="display:flex; gap:8px; margin-top:14px;">
+        <button class="btn btn-ghost" style="flex:1; padding:12px; font-size:13px;">WhatsApp</button>
+        <button class="btn btn-ghost" style="flex:1; padding:12px; font-size:13px;">Copy link</button>
+      </div>
+
+      <div style="margin-top:auto; background:rgba(45,212,191,0.08); border:1px solid rgba(45,212,191,0.25); border-radius:14px; padding:12px 14px; text-align:left;">
+        <div style="font-size:11.5px; font-weight:600; color:var(--teal);">What joiners will see before sharing</div>
+        <div class="caption" style="margin-top:4px; line-height:1.5;">“Bikesh (organizer) will see your live location.
+        Other members will only see the route and stops. You can pause sharing anytime.”</div>
+      </div>
+    </div>
+  </div>
+  <p class="note">QR is the killer invite for in-person meetups. The consent preview turns your
+  visibility rules into a trust feature — joiners know exactly what they’re sharing, with whom,
+  before they tap join.</p>
+</div>
+
+<!-- ═══════════ 4. LIVE MAP — MEMBER ═══════════ -->
+<div class="concept">
+  <h2><em>Screen 4</em>Live map — member view (hub &amp; spoke)</h2>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="map">
+      <svg viewBox="0 0 320 560">
+        <path d="M0 120 H320 M0 300 H320 M0 460 H320 M70 0 V560 M200 0 V560 M300 0 V560" stroke="#16213A" stroke-width="10"/>
+        <path d="M60 470 C 100 400, 140 360, 165 290 S 210 160, 262 96" stroke="#2DD4BF" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+        <path d="M60 470 C 100 400, 140 360, 165 290" stroke="#34D399" stroke-width="2" fill="none" stroke-dasharray="1 7" stroke-linecap="round" opacity="0.9"/>
+      </svg>
+      <!-- destination -->
+      <div class="pin" style="left:243px; top:150px;">
+        <div class="head" style="background:var(--teal);"><span>🏁</span></div>
+        <div class="tag">Palolem · 42 km</div>
+      </div>
+      <!-- rest stop -->
+      <div class="pin" style="left:165px; top:290px;">
+        <div class="head" style="background:#FBBF24;"><span>☕</span></div>
+        <div class="tag">Chai Point · 11 km</div>
+      </div>
+      <!-- organizer -->
+      <div class="pin" style="left:118px; top:388px;">
+        <div class="head" style="background:var(--m2);"><span>B</span></div>
+        <div class="tag">👑 Bikesh · 62 km/h</div>
+      </div>
+      <!-- me -->
+      <div class="me-marker" style="left:60px; top:470px;">
+        <div class="ring"></div><div class="core"><div class="arrow"></div></div>
+      </div>
+    </div>
+    <div class="trip-pill">
+      <div>
+        <div class="title">Goa Ride 🏍</div>
+        <div class="meta">ETA 1 h 25 m · next stop 11 km</div>
+      </div>
+      <div class="avatars">
+        <div class="avatar" style="background:var(--m2);">B</div>
+        <div class="avatar" style="background:var(--raised); color:var(--sub); font-size:9px;">+7</div>
+      </div>
+    </div>
+    <div class="sheet">
+      <div class="grab"></div>
+      <div style="display:flex; align-items:center; gap:10px; padding:12px 16px 16px;">
+        <span class="chip" style="background:rgba(52,211,153,0.15); color:var(--me);"><span class="dot" style="background:var(--me)"></span> Sharing live</span>
+        <span class="chip" style="background:var(--raised); color:var(--sub);">Pause</span>
+        <span class="chip" style="background:rgba(248,113,113,0.14); color:var(--danger); margin-left:auto; padding:7px 14px;">SOS · hold</span>
+      </div>
+    </div>
+  </div>
+  <p class="note">A member sees: themselves, the organizer (lead), the teal route, stops and
+  destination — not the other 7 riders. Clean map, zero clutter. The sheet peek row holds the
+  sharing toggle (ghost mode) and SOS. Your own ETA and next-stop distance replace the old
+  10 px top-bar chips.</p>
+</div>
+
+<!-- ═══════════ 5. LIVE MAP — ORGANIZER ═══════════ -->
+<div class="concept">
+  <h2><em>Screen 5</em>Live map — organizer view + fleet sheet</h2>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="map" style="bottom:250px;">
+      <svg viewBox="0 0 320 410">
+        <path d="M0 100 H320 M0 260 H320 M70 0 V410 M200 0 V410" stroke="#16213A" stroke-width="10"/>
+        <path d="M40 360 C 90 300, 150 260, 180 200 S 240 90, 285 60" stroke="#2DD4BF" stroke-width="4" fill="none" stroke-linecap="round"/>
+      </svg>
+      <div class="pin" style="left:272px; top:118px;"><div class="head" style="background:var(--teal);"><span>🏁</span></div></div>
+      <div class="pin" style="left:196px; top:172px;"><div class="head" style="background:var(--m1);"><span>P</span></div><div class="tag">Priya · 58 km/h</div></div>
+      <div class="pin" style="left:152px; top:238px;"><div class="head" style="background:var(--m3);"><span>A</span></div><div class="tag">Arun · 61 km/h</div></div>
+      <div class="pin" style="left:64px; top:330px;"><div class="head" style="background:var(--m4);"><span>R</span></div><div class="tag" style="border-color:rgba(251,191,36,0.5); color:var(--warn);">Rahul · 4.2 km behind</div></div>
+      <div class="me-marker" style="left:120px; top:280px;"><div class="ring"></div><div class="core"><div class="arrow"></div></div></div>
+    </div>
+    <div class="trip-pill">
+      <div>
+        <div class="title">Goa Ride 🏍 <span class="chip" style="background:rgba(59,130,246,0.16); color:#93C5FD; margin-left:4px;">👑 Organizer</span></div>
+        <div class="meta">8 riding · 1 falling behind</div>
+      </div>
+    </div>
+    <div class="sheet" style="height:250px;">
+      <div class="grab"></div>
+      <div style="padding:10px 16px 6px; display:flex; align-items:center;">
+        <span style="font-size:13px; font-weight:700;">Fleet · 9 members</span>
+        <span class="chip" style="background:rgba(251,191,36,0.14); color:var(--warn); margin-left:auto;">⚠ 1 alert</span>
+      </div>
+      <div class="row" style="background:rgba(251,191,36,0.06);">
+        <div class="avatar" style="background:var(--m4);">R</div>
+        <div><div class="name">Rahul</div><div class="sub">Fell 4.2 km behind · stopped 6 min</div></div>
+        <div class="right"><span class="chip" style="background:var(--raised); color:var(--ink);">Ping</span></div>
+      </div>
+      <div class="row">
+        <div class="avatar" style="background:var(--m1);">P</div>
+        <div><div class="name">Priya</div><div class="sub">58 km/h · ETA 1 h 18 m</div></div>
+        <div class="right"><span class="sub">🔋 74% · 1.9 km</span></div>
+      </div>
+      <div class="row">
+        <div class="avatar" style="background:var(--m3);">A</div>
+        <div><div class="name">Arun</div><div class="sub">61 km/h · ETA 1 h 21 m</div></div>
+        <div class="right"><span class="sub">🔋 41% · 0.8 km</span></div>
+      </div>
+    </div>
+  </div>
+  <p class="note">The organizer gets the full fleet: everyone on the map plus a ranked list —
+  alerts float to the top (fell behind, stopped, low battery, offline) with a one-tap
+  <b>Ping</b> that drops a nudge in chat. This replaces passive watching with active shepherding.</p>
+</div>
+
+<!-- ═══════════ 6. TRIP SUMMARY ═══════════ -->
+<div class="concept">
+  <h2><em>Screen 6</em>Trip end — shared summary</h2>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="screen-pad" style="padding-top:64px;">
+      <div style="text-align:center; margin-bottom:18px;">
+        <div style="font-size:13px; color:var(--sub);">Trip complete</div>
+        <div style="font-size:22px; font-weight:800; margin-top:4px;">Goa Ride 🏍</div>
+      </div>
+
+      <div style="background:var(--surface); border:1px solid var(--line); border-radius:18px; height:150px; position:relative; overflow:hidden; margin-bottom:14px;">
+        <svg viewBox="0 0 280 150" style="width:100%; height:100%;">
+          <path d="M0 50 H280 M0 110 H280 M70 0 V150 M190 0 V150" stroke="#16213A" stroke-width="7"/>
+          <path d="M25 128 C 80 100, 120 95, 150 70 S 220 35, 255 22" stroke="#2DD4BF" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+          <circle cx="25" cy="128" r="5" fill="#34D399"/><circle cx="255" cy="22" r="5" fill="#2DD4BF"/>
+        </svg>
+        <span class="chip" style="position:absolute; bottom:10px; left:10px; background:rgba(11,18,32,0.85); color:var(--sub);">Actual route travelled</span>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px;">
+        <div style="background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:14px;">
+          <div style="font-size:20px; font-weight:800;">312 km</div><div class="caption">Distance</div>
+        </div>
+        <div style="background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:14px;">
+          <div style="font-size:20px; font-weight:800;">6 h 40 m</div><div class="caption">Duration</div>
+        </div>
+        <div style="background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:14px;">
+          <div style="font-size:20px; font-weight:800;">9</div><div class="caption">Riders, zero left behind</div>
+        </div>
+        <div style="background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:14px;">
+          <div style="font-size:20px; font-weight:800;">3</div><div class="caption">Rest stops</div>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" style="margin-top:auto; margin-bottom:8px;">Share trip card</button>
+      <div class="caption" style="text-align:center;">Location data deleted · summary saved to your history</div>
+    </div>
+  </div>
+  <p class="note">Ending a trip is an event, not a confirm() dialog: real route map, stats,
+  and a shareable card (organic growth loop). The “location data deleted” line closes the
+  privacy story that started on screen one.</p>
+</div>
+
+</div>
+</body>
+</html>
