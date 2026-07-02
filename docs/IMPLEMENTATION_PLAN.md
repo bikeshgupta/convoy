@@ -48,42 +48,51 @@ right on the real Google Map, confirm the screen stays awake during a trip.
 
 ---
 
-## Phase 2 — Trust: auth, data model, security rules
+## ✅ Phase 2 — Trust: auth, data model, security rules (DONE, this branch)
 
 **Goal:** nobody can read or spoof locations without being in the trip. This unblocks the
 visibility model, so it comes before features.
 
-- [ ] Anonymous Firebase Auth for guests (`signInAnonymously`) — every member gets an
-      `auth.uid`; replace localStorage guest IDs; keep Google sign-in for organizers
-- [ ] Restructure RTDB schema:
-      `trips/{code}/{meta, roles/{uid}, profiles/{uid}, positions/{uid}, waypoints, chat, sos}`
-      (split identity from live position so rules can guard positions separately)
-- [ ] Write `database.rules.json` in-repo: positions writable only by owner; waypoints
-      writable only by organizer; validation on lat/lng ranges, name length, chat rate
-- [ ] Migrate hooks (`useTrip`, `useMembers`, `useChat`) to the new paths
-- [ ] SOS resolve flow: "I'm safe" (triggerer) / "Mark resolved" (organizer), resolved
-      alerts cleared from the map
-- [ ] Trip lifecycle part 1: organizer "End trip for everyone" → `meta.status = 'ended'`,
-      members get the summary screen, trip becomes non-joinable
-- [ ] Lint cleanup: remaining `refs during render` / `Date.now in render` errors
-- **[You]:** enable Anonymous Auth in Firebase console; deploy rules (`firebase deploy
-  --only database`); two-device test that a non-member UID cannot read positions
+- [x] Anonymous Firebase Auth for guests (`signInAnonymously`) — every member gets an
+      `auth.uid`; localStorage guest IDs are only a fallback when Firebase isn't configured
+- [x] Restructured RTDB schema:
+      `trips/{code}/{meta, profiles/{uid}, positions/{uid}, waypoints, chat, sos}`
+      (identity split from live position so rules guard positions separately;
+      organizer = `meta.createdBy`, no separate roles node needed)
+- [x] `database.rules.json` in-repo: positions writable only by owner and readable per
+      sharing mode; rest/destination waypoints writable only by organizer; chat
+      append-only; validation on lat/lng ranges, name/text lengths
+- [x] Hooks migrated (`useTrip`, `useMembers`); `useChat` path unchanged
+- [x] SOS resolve flow: "I'm safe" banner (triggerer) / "Mark resolved for everyone"
+      (organizer); overlay clears live for everyone when resolved
+- [x] Trip lifecycle part 1: organizer "End trip for everyone" → `meta.status = 'ended'`,
+      every member gets the summary automatically, joining an ended trip is blocked
+- [x] Lint cleanup: refs-during-render, Date.now-in-render and TDZ errors fixed
+      (38 → 13 problems; the rest are the strict set-state-in-subscription rule on
+      standard Firebase listener patterns)
+- **[You]:** enable Anonymous Auth in Firebase console (Authentication → Sign-in method
+  → Anonymous); deploy rules (`firebase deploy --only database` or paste
+  `database.rules.json` into the console); two-device test that a hub-mode member
+  cannot read other members' positions
 
-## Phase 3 — The differentiator: roles & visibility modes
+## ✅ Phase 3 — The differentiator: roles & visibility modes (DONE, this branch)
 
 **Goal:** the product you described — organizer sees all; joiners see the route, stops
 and organizer only.
 
-- [ ] Sharing mode on trip creation: **Everyone** / **Hub & spoke** / **Proximity (5 km)**
-      stored in `meta.mode`, enforced in rules + filtered in `useMembers`
-- [ ] Destination-first create flow: trip name + destination search + mode picker
-      (replaces "code first, destination buried in Pin tab")
-- [ ] Join preview screen: trip name, organizer, destination, member count, and an
-      explicit "who will see your location" consent line before joining
-- [ ] QR code on the invite/share sheet (`qrcode` lib) + WhatsApp share link
-- [ ] Organizer badge on map pin + member list; per-member "Pause sharing" (ghost mode)
-- [ ] Fleet panel for the organizer: alert rows float to top (fell behind / stopped /
-      offline / low battery) with one-tap Ping
+- [x] Sharing mode on trip creation: **Hub & spoke** (default) / **Everyone** /
+      **Proximity (5 km)** stored in `meta.mode`, enforced in security rules
+      (hub members can only read the organizer's position node) + filtered in `useMembers`
+- [x] Destination-first create flow at `/create`: trip name + Places destination search +
+      mode picker + travel mode + generated code; Google sign-in gated
+- [x] Join preview: trip name, member count, ended-state guard, and an explicit
+      "who will see your location" consent line under the code field
+- [x] Invite sheet: QR code (`qrcode` lib), WhatsApp share, copy link, native share,
+      "what joiners will see" preview; auto-opens after creating a trip
+- [x] Organizer crown badge on map pin + member list; per-member "Pause sharing"
+      (ghost mode) toggle that removes your marker and shows "Sharing paused" to others
+- [x] Fleet view for the organizer: "Needs attention" rows float to the top of the
+      group panel (offline / battery <15% / >5 km away) with one-tap Ping
 - **[You]:** 3+ device field test of hub-and-spoke mode on a real ride
 
 ## Phase 4 — Awareness: ETA, alerts, notifications

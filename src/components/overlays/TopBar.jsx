@@ -1,30 +1,14 @@
 import { motion } from 'framer-motion'
 import { MapPin, Navigation, Share2, LogOut } from 'lucide-react'
-import toast from 'react-hot-toast'
 import { useShallow } from 'zustand/shallow'
 import useTripStore from '../../store/tripStore'
 
-export default function TopBar({ onlineCount, onLeave, routeDuration, onRoutePress }) {
-  const { tripCode, routePath } = useTripStore(useShallow(s => ({
+export default function TopBar({ onlineCount, onLeave, onInvite, routeDuration, onRoutePress }) {
+  const { tripCode, tripName, routePath } = useTripStore(useShallow(s => ({
     tripCode:  s.tripCode,
+    tripName:  s.tripName,
     routePath: s.routePath,
   })))
-
-  const share = async () => {
-    const url  = `${window.location.origin}/join?code=${tripCode}`
-    const text = `Join my Convoy trip! Code: ${tripCode}`
-    try {
-      if (navigator.share) {
-        await navigator.share({ title: 'Join Convoy Trip', text, url })
-      } else {
-        await navigator.clipboard.writeText(url)
-        toast.success('Invite link copied!')
-      }
-    } catch {
-      await navigator.clipboard.writeText(url).catch(() => {})
-      toast.success('Invite link copied!')
-    }
-  }
 
   return (
     <div
@@ -40,10 +24,10 @@ export default function TopBar({ onlineCount, onLeave, routeDuration, onRoutePre
       {/* Left: wordmark + trip code */}
       <div className="flex flex-col leading-none min-w-0">
         <span
-          className="font-display font-semibold text-ink"
-          style={{ fontSize: 17, letterSpacing: '-0.01em' }}
+          className="font-display font-semibold text-ink truncate"
+          style={{ fontSize: 17, letterSpacing: '-0.01em', maxWidth: 120 }}
         >
-          Convoy
+          {tripName || 'Convoy'}
         </span>
         <span className="flex items-center gap-1 font-mono text-sub mt-0.5" style={{ fontSize: 10 }}>
           <MapPin size={8} color="#9AA292" />
@@ -83,7 +67,7 @@ export default function TopBar({ onlineCount, onLeave, routeDuration, onRoutePre
       {/* Right: share + leave */}
       <div className="flex items-center gap-2 flex-shrink-0">
         <button
-          onClick={share}
+          onClick={onInvite}
           className="flex items-center gap-1.5 rounded-[10px] px-2.5 py-1.5 transition-opacity hover:opacity-80"
           style={{ background: '#1B6B4A', color: '#FFFFFF' }}
           title="Share invite link"

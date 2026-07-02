@@ -33,6 +33,7 @@ export default function WaypointMarker({ waypoint }) {
 
   const style = TYPE_STYLES[waypoint.type] ?? TYPE_STYLES.pin
   const isDestination = waypoint.type === 'destination'
+  // eslint-disable-next-line react-hooks/static-components -- registry lookup, not a new component
   const Icon = getWaypointIcon(waypoint.icon)
 
   return (

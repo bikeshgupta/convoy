@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Map as MapIcon, Users, MessageCircle, Route as RouteIcon, MapPin, Siren, BatteryLow, WifiOff } from 'lucide-react'
+import { Map as MapIcon, Users, MessageCircle, Route as RouteIcon, MapPin, Siren, BatteryLow, WifiOff, ShieldCheck, Flag } from 'lucide-react'
 import { useShallow } from 'zustand/shallow'
 import useTripStore from '../store/tripStore'
 import { useAuth } from '../contexts/AuthContext'
@@ -15,6 +15,7 @@ import useRoute from '../hooks/useRoute'
 import useWakeLock from '../hooks/useWakeLock'
 import ConvoyMap from '../components/map/ConvoyMap'
 import TopBar from '../components/overlays/TopBar'
+import InviteSheet from '../components/overlays/InviteSheet'
 import SOSButton from '../components/overlays/SOSButton'
 import WaypointPicker from '../components/overlays/WaypointPicker'
 import MemberDetailCard from '../components/overlays/MemberDetailCard'
@@ -23,7 +24,7 @@ import ChatPanel from '../components/panels/ChatPanel'
 import RoutePanel from '../components/panels/RoutePanel'
 import TripSummary from '../components/panels/TripSummary'
 import LoadingScreen from '../components/ui/LoadingScreen'
-import { db, ref, onValue, off, set } from '../firebase'
+import { db, ref, onValue, off, set, update, push, serverTimestamp } from '../firebase'
 
 export default function TripPage() {
   const { tripCode: codeParam } = useParams()
@@ -31,16 +32,19 @@ export default function TripPage() {
   const { user } = useAuth()
 
   const {
-    myName, memberId, myTransport, myColor, isObserver,
-    setMyPos, setObserver, setActivePanel, activePanel, clearUnread, unreadMessages, reset,
+    myName, memberId, myTransport, myColor, isObserver, isCreator, showInvite,
+    setMyPos, setObserver, setShowInvite, setActivePanel, activePanel, clearUnread, unreadMessages, reset,
   } = useTripStore(useShallow(s => ({
     myName:         s.myName,
     memberId:       s.memberId,
     myTransport:    s.myTransport,
     myColor:        s.myColor,
     isObserver:     s.isObserver,
+    isCreator:      s.isCreator,
+    showInvite:     s.showInvite,
     setMyPos:       s.setMyPos,
     setObserver:    s.setObserver,
+    setShowInvite:  s.setShowInvite,
     setActivePanel: s.setActivePanel,
     activePanel:    s.activePanel,
     clearUnread:    s.clearUnread,
@@ -68,9 +72,10 @@ export default function TripPage() {
     }
   }, [position, isObserver, setObserver])
 
-  const memberData = { name: myName, transport: myTransport, color: myColor, speed, heading, battery, accuracy, isOnline: true }
+  const profileData = { name: myName, transport: myTransport, color: myColor }
+  const telemetry   = { speed, heading, battery, accuracy }
 
-  const { isConnected }      = useTrip(codeParam, memberId, memberData)
+  const { isConnected, tripMissing, tripEnded } = useTrip(codeParam, memberId, profileData, telemetry)
   const { members, onlineCount } = useMembers(codeParam, memberId)
   const { messages, sendMessage } = useChat(codeParam, memberId)
 
@@ -78,7 +83,41 @@ export default function TripPage() {
   const [showSummary,    setShowSummary]    = useState(false)
   const [waypoints,      setWaypoints]      = useState([])
   const [sosAlert,       setSosAlert]       = useState(null)
+  const [mySos,          setMySos]          = useState(null)
+  const [leaveModal,     setLeaveModal]     = useState(false)
   const mapCenterRef = useRef(null)
+
+  const saveHistory = () => {
+    if (!user || user.isAnonymous || !db) return
+    const { tripStartTime, tripName } = useTripStore.getState()
+    set(ref(db, `users/${user.uid}/trips/${codeParam}`), {
+      tripCode:      codeParam,
+      tripName:      tripName ?? '',
+      joinedAt:      tripStartTime ?? Date.now(),
+      exitedAt:      Date.now(),
+      memberCount:   members.length + 1,
+      waypointCount: waypoints.length,
+      messageCount:  messages.length,
+    }).catch(() => {})
+  }
+
+  // Unknown trip code -> back to the join screen
+  useEffect(() => {
+    if (tripMissing) {
+      toast.error('Trip not found')
+      reset()
+      navigate('/join', { replace: true })
+    }
+  }, [tripMissing]) // eslint-disable-line
+
+  // Organizer ended the trip -> everyone gets the summary
+  useEffect(() => {
+    if (tripEnded && !showSummary) {
+      toast('Trip ended by the organizer', { icon: <Flag size={16} color="#14523A" /> })
+      saveHistory()
+      setShowSummary(true)
+    }
+  }, [tripEnded]) // eslint-disable-line
 
   // Subscribe to waypoints
   useEffect(() => {
@@ -97,14 +136,24 @@ export default function TripPage() {
     if (!db || !codeParam) return
     const sosRef = ref(db, `trips/${codeParam}/sos`)
     const unsub  = onValue(sosRef, snap => {
-      if (!snap.exists()) return
-      const cutoff = Date.now() - 10 * 60 * 1000
-      const active = Object.entries(snap.val())
+      if (!snap.exists()) { setSosAlert(null); setMySos(null); return }
+      const cutoff  = Date.now() - 10 * 60 * 1000
+      const entries = Object.entries(snap.val())
+      const active  = entries
         .find(([, v]) => !v.resolved && v.triggeredBy !== memberId && (v.timestamp ?? 0) > cutoff)
+      const mine    = entries
+        .find(([, v]) => !v.resolved && v.triggeredBy === memberId && (v.timestamp ?? 0) > cutoff)
+      setMySos(mine ? { id: mine[0], ...mine[1] } : null)
       if (active) {
-        setSosAlert({ id: active[0], ...active[1] })
-        navigator.vibrate?.([300, 100, 300, 100, 300])
-        toast.error(`SOS from ${active[1].triggeredByName}!`, { duration: 10000 })
+        setSosAlert(prev => {
+          if (prev?.id !== active[0]) {
+            navigator.vibrate?.([300, 100, 300, 100, 300])
+            toast.error(`SOS from ${active[1].triggeredByName}!`, { duration: 10000 })
+          }
+          return { id: active[0], ...active[1] }
+        })
+      } else {
+        setSosAlert(null)
       }
     })
     return () => off(sosRef, 'value', unsub)
@@ -143,10 +192,9 @@ export default function TripPage() {
   }, [isConnected])
 
   // Planned route via Google Directions
-  const legsRef = useRoute(waypoints)
+  const legs = useRoute(waypoints)
 
   // Route total duration for TopBar chip
-  const legs = legsRef.current ?? []
   const totalSeconds = legs.reduce((s, l) => s + (l.duration?.value ?? 0), 0)
   const routeDuration = totalSeconds > 0
     ? totalSeconds < 3600
@@ -154,20 +202,50 @@ export default function TripPage() {
       : `${Math.floor(totalSeconds / 3600)}h ${Math.floor((totalSeconds % 3600) / 60)}m`
     : null
 
-  const handleLeave = async () => {
-    if (!window.confirm('Leave trip?')) return
-    if (user && db) {
-      const { tripStartTime } = useTripStore.getState()
-      set(ref(db, `users/${user.uid}/trips/${codeParam}`), {
-        tripCode:      codeParam,
-        joinedAt:      tripStartTime ?? Date.now(),
-        exitedAt:      Date.now(),
-        memberCount:   members.length + 1,
-        waypointCount: waypoints.length,
-        messageCount:  messages.length,
-      }).catch(() => {})
-    }
+  const handleLeave = () => setLeaveModal(true)
+
+  const leaveTrip = () => {
+    setLeaveModal(false)
+    saveHistory()
     setShowSummary(true)
+  }
+
+  const endTripForEveryone = async () => {
+    setLeaveModal(false)
+    if (db) {
+      try {
+        await update(ref(db, `trips/${codeParam}/meta`), {
+          status:  'ended',
+          endedAt: serverTimestamp(),
+        })
+        await push(ref(db, `trips/${codeParam}/chat`), {
+          text:       `${myName} ended the trip`,
+          senderName: 'System',
+          senderId:   'system',
+          timestamp:  serverTimestamp(),
+          type:       'system',
+        })
+      } catch { toast.error('Could not end the trip') }
+    }
+    // The status listener flips tripEnded and shows the summary for everyone
+  }
+
+  const resolveSos = async (sosId, note) => {
+    if (!db || !sosId) return
+    try {
+      await update(ref(db, `trips/${codeParam}/sos/${sosId}`), {
+        resolved:   true,
+        resolvedBy: memberId,
+        resolvedAt: serverTimestamp(),
+      })
+      await push(ref(db, `trips/${codeParam}/chat`), {
+        text:       note,
+        senderName: 'System',
+        senderId:   'system',
+        timestamp:  serverTimestamp(),
+        type:       'system',
+      })
+    } catch { toast.error('Could not resolve the alert') }
   }
 
   const handleSummaryClose = () => { reset(); navigate('/') }
@@ -204,9 +282,27 @@ export default function TripPage() {
       <TopBar
         onlineCount={onlineCount + (isObserver ? 0 : 1)}
         onLeave={handleLeave}
+        onInvite={() => setShowInvite(true)}
         routeDuration={routeDuration}
         onRoutePress={() => handlePanelChange('route')}
       />
+
+      <InviteSheet isOpen={showInvite} onClose={() => setShowInvite(false)} />
+
+      {/* My active SOS banner */}
+      {mySos && (
+        <div className="fixed top-16 left-0 right-0 z-[95] flex items-center justify-center gap-3 py-2 text-xs font-medium"
+          style={{ background: '#FAECE8', color: '#BE4B3B', borderBottom: '1px solid #F0D5CE' }}>
+          Your SOS is active
+          <button
+            onClick={() => resolveSos(mySos.id, `${myName} marked themselves safe`)}
+            className="flex items-center gap-1 font-bold px-2.5 py-1 rounded-full text-white"
+            style={{ background: '#1B6B4A' }}
+          >
+            <ShieldCheck size={11} /> I'm safe
+          </button>
+        </div>
+      )}
 
       {/* Observer banner */}
       {isObserver && (
@@ -266,7 +362,7 @@ export default function TripPage() {
       {/* Panels */}
       <MemberListPanel members={members} onMemberClick={m => { setSelectedMember(m); setActivePanel(null) }} onClose={() => setActivePanel(null)} />
       <ChatPanel messages={messages} sendMessage={sendMessage} onClose={() => setActivePanel(null)} />
-      <RoutePanel waypoints={waypoints} legsRef={legsRef} onClose={() => setActivePanel(null)} />
+      <RoutePanel waypoints={waypoints} legs={legs} onClose={() => setActivePanel(null)} />
       <WaypointPicker onClose={() => setActivePanel(null)} mapCenterRef={mapCenterRef} />
 
       {selectedMember && <MemberDetailCard member={selectedMember} onClose={() => setSelectedMember(null)} />}
@@ -299,6 +395,59 @@ export default function TripPage() {
                   style={{ background: '#F4F2EC', border: '1px solid #E5E2D9' }}
                 >Dismiss</button>
               </div>
+              {isCreator && (
+                <button
+                  onClick={() => resolveSos(sosAlert.id, `${myName} marked the SOS as resolved`)}
+                  className="w-full mt-3 py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-1.5"
+                  style={{ background: '#E7F1EA', border: '1px solid #CBDFD2', color: '#14523A' }}
+                >
+                  <ShieldCheck size={15} /> Mark resolved for everyone
+                </button>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Leave / end trip modal */}
+      <AnimatePresence>
+        {leaveModal && (
+          <motion.div
+            className="fixed inset-0 z-[200] flex items-end justify-center p-4"
+            style={{ background: 'rgba(31,35,31,0.45)', backdropFilter: 'blur(4px)' }}
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={() => setLeaveModal(false)}
+          >
+            <div
+              className="w-full max-w-sm rounded-3xl p-6 space-y-3"
+              style={{ background: '#FFFFFF', border: '1px solid #E5E2D9', boxShadow: '0 20px 48px rgba(31,35,31,0.25)' }}
+              onClick={e => e.stopPropagation()}
+            >
+              <h3 className="font-display font-semibold text-xl text-ink text-center mb-1">
+                {isCreator ? 'End or leave?' : 'Leave trip?'}
+              </h3>
+              {isCreator && (
+                <button
+                  onClick={endTripForEveryone}
+                  className="w-full py-3.5 rounded-xl font-semibold text-sm text-white flex items-center justify-center gap-2"
+                  style={{ background: '#BE4B3B' }}
+                >
+                  <Flag size={15} /> End trip for everyone
+                </button>
+              )}
+              <button
+                onClick={leaveTrip}
+                className="w-full py-3.5 rounded-xl font-semibold text-sm text-ink"
+                style={{ background: '#F4F2EC', border: '1px solid #E5E2D9' }}
+              >
+                {isCreator ? 'Leave quietly (trip stays live)' : 'Leave trip'}
+              </button>
+              <button
+                onClick={() => setLeaveModal(false)}
+                className="w-full py-3 rounded-xl font-medium text-sm text-sub"
+              >
+                Cancel
+              </button>
             </div>
           </motion.div>
         )}

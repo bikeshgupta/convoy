@@ -1,0 +1,63 @@
+{
+  "rules": {
+    "trips": {
+      "$code": {
+        "meta": {
+          ".read": "auth != null",
+          ".write": "auth != null && ((!data.exists() && newData.child('createdBy').val() === auth.uid) || data.child('createdBy').val() === auth.uid)",
+          ".validate": "newData.hasChildren(['createdBy', 'status', 'mode'])"
+        },
+
+        "profiles": {
+          ".read": "auth != null",
+          "$uid": {
+            ".write": "auth != null && $uid === auth.uid",
+            "name":      { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 30" },
+            "transport": { ".validate": "newData.isString() && newData.val().length <= 20" },
+            "color":     { ".validate": "newData.isString() && newData.val().length <= 10" }
+          }
+        },
+
+        "positions": {
+          ".read": "auth != null && (root.child('trips').child($code).child('meta').child('createdBy').val() === auth.uid || root.child('trips').child($code).child('meta').child('mode').val() !== 'hub')",
+          "$uid": {
+            ".read": "auth != null && ($uid === auth.uid || $uid === root.child('trips').child($code).child('meta').child('createdBy').val() || root.child('trips').child($code).child('meta').child('createdBy').val() === auth.uid || root.child('trips').child($code).child('meta').child('mode').val() !== 'hub')",
+            ".write": "auth != null && $uid === auth.uid",
+            "lat": { ".validate": "newData.isNumber() && newData.val() >= -90 && newData.val() <= 90" },
+            "lng": { ".validate": "newData.isNumber() && newData.val() >= -180 && newData.val() <= 180" }
+          }
+        },
+
+        "waypoints": {
+          ".read": "auth != null",
+          "$wid": {
+            ".write": "auth != null && (root.child('trips').child($code).child('meta').child('createdBy').val() === auth.uid || (newData.exists() && newData.child('type').val() === 'pin'))",
+            ".validate": "!newData.exists() || (newData.child('lat').isNumber() && newData.child('lng').isNumber())"
+          }
+        },
+
+        "chat": {
+          ".read": "auth != null",
+          "$mid": {
+            ".write": "auth != null && !data.exists()",
+            "text": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 300" }
+          }
+        },
+
+        "sos": {
+          ".read": "auth != null",
+          "$sid": {
+            ".write": "auth != null"
+          }
+        }
+      }
+    },
+
+    "users": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    }
+  }
+}

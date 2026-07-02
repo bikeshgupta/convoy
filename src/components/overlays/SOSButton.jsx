@@ -1,11 +1,9 @@
 import { useState, useRef, useCallback } from 'react'
-import { motion } from 'framer-motion'
 import { AlertTriangle } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { db, ref, push, serverTimestamp } from '../../firebase'
 import { useShallow } from 'zustand/shallow'
 import useTripStore from '../../store/tripStore'
-import { nanoid } from 'nanoid'
 
 export default function SOSButton() {
   const [progress, setProgress] = useState(0)

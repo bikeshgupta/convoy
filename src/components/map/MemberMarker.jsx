@@ -1,7 +1,9 @@
 import { OverlayView } from '@react-google-maps/api'
+import { Crown } from 'lucide-react'
 
 export default function MemberMarker({ member, onClick }) {
   if (member.lat == null || member.lng == null) return null
+  if (member.sharing === false) return null
 
   const pos     = { lat: member.lat, lng: member.lng }
   const offline = !member.isOnline
@@ -57,11 +59,10 @@ export default function MemberMarker({ member, onClick }) {
           }}
         >
           <span className="rounded-full" style={{ width: 6, height: 6, background: offline ? '#9AA292' : member.color }} />
+          {member.role === 'organizer' && <Crown size={9} color="#B98A2E" fill="#B98A2E" />}
           {member.name}
           {offline
-            ? <span style={{ color: '#9AA292' }}>
-                · {member.lastSeen ? `${Math.round((Date.now() - member.lastSeen) / 60000)}m ago` : 'offline'}
-              </span>
+            ? <span style={{ color: '#9AA292' }}>· {member.agoText ?? 'offline'}</span>
             : member.speed > 0 && <span style={{ color: '#67705F' }}>· {member.speed} km/h</span>
           }
         </div>

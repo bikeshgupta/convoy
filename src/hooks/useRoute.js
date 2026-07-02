@@ -1,16 +1,22 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import useTripStore from '../store/tripStore'
 
 // Builds a Directions route: myPos → rest stops (by addedAt) → destination
-// Updates store: routePath, and returns legs with ETA/distance per segment
+// Updates store: routePath; returns legs (state, safe to render) with
+// ETA/distance per segment
 export default function useRoute(waypoints) {
-  const myPos      = useTripStore(s => s.myPos)
-  const mapsLoaded = useTripStore(s => s.mapsLoaded)
+  const myPos        = useTripStore(s => s.myPos)
+  const mapsLoaded   = useTripStore(s => s.mapsLoaded)
   const setRoutePath = useTripStore(s => s.setRoutePath)
 
   const debounceRef  = useRef(null)
-  const legsRef      = useRef([])
-  const forceUpdate  = useTripStore(s => s.setRoutePath) // just to access stable setter
+  const [legs, setLegs] = useState([])
+
+  const routeKey = JSON.stringify(
+    waypoints
+      .filter(w => w.type === 'rest' || w.type === 'destination')
+      .map(w => ({ lat: w.lat, lng: w.lng, type: w.type, addedAt: w.addedAt }))
+  )
 
   useEffect(() => {
     if (!myPos || !mapsLoaded) return
@@ -21,7 +27,7 @@ export default function useRoute(waypoints) {
 
     if (!destination) {
       setRoutePath(null)
-      legsRef.current = []
+      setLegs([])
       return
     }
 
@@ -48,31 +54,18 @@ export default function useRoute(waypoints) {
         (result, status) => {
           if (status !== 'OK' || !result.routes[0]) {
             setRoutePath(null)
-            legsRef.current = []
+            setLegs([])
             return
           }
           const route = result.routes[0]
-          // Convert LatLng objects to plain {lat, lng}
-          const path = route.overview_path.map(ll => ({ lat: ll.lat(), lng: ll.lng() }))
-          setRoutePath(path)
-          legsRef.current = route.legs
+          setRoutePath(route.overview_path.map(ll => ({ lat: ll.lat(), lng: ll.lng() })))
+          setLegs(route.legs)
         }
       )
     }, 1500)
 
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
-  }, [
-    myPos?.lat,
-    myPos?.lng,
-    mapsLoaded,
-    // Re-run when route-relevant waypoints change
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    JSON.stringify(
-      waypoints
-        .filter(w => w.type === 'rest' || w.type === 'destination')
-        .map(w => ({ lat: w.lat, lng: w.lng, type: w.type, addedAt: w.addedAt }))
-    ),
-  ])
+  }, [myPos?.lat, myPos?.lng, mapsLoaded, routeKey]) // eslint-disable-line
 
-  return legsRef
+  return legs
 }
